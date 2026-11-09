@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta charset="utf-8">
+<title>Hurricanes &amp; Insurers</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,500..800&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+/* Layout: one reading column (~68ch) for the argument; charts and tables break out to a wider measure.
+   Storm-slate neutrals, series colours = insurer groups (FL blue, national orange, reinsurer aqua). */
+:root {
+  --bg: #f5f7f8;
+  --surface: #ffffff;
+  --ink: #0f151b;
+  --ink-2: #47525d;
+  --muted: #76818b;
+  --rule: #dce1e5;
+  --rule-strong: #b9c1c8;
+  --s1: #2a78d6;
+  --s2: #eb6834;
+  --s3: #1baf7a;
+  --stock: #a7b0b8;
+  --tip-bg: #0f151b;
+  --tip-fg: #f2f4f6;
+  --font-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-data: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --read: 42rem;
+  --wide: 68rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161a; --surface: #192026; --ink: #edf1f4; --ink-2: #b6c0c8; --muted: #88939c;
+    --rule: #2a333a; --rule-strong: #46515a; --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+    --stock: #5b6670; --tip-bg: #edf1f4; --tip-fg: #11161a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161a; --surface: #192026; --ink: #edf1f4; --ink-2: #b6c0c8; --muted: #88939c;
+  --rule: #2a333a; --rule-strong: #46515a; --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+  --stock: #5b6670; --tip-bg: #edf1f4; --tip-fg: #11161a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 1.0625rem; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 2.5rem 4rem;
+}
+main { display: grid; gap: 3.5rem; }
+.read { max-width: var(--read); margin-inline: auto; width: 100%; }
+.wide { max-width: var(--wide); margin-inline: auto; width: 100%; min-width: 0; }
+.wide > .head { max-width: var(--read); }
+h1, h2, h3, .eyebrow, .chip, .tabs button, th, .legend { font-family: var(--font-display); }
+h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: 1.02; font-weight: 800; font-stretch: 78%;
+     letter-spacing: -0.01em; margin: 0.4rem 0 1rem; text-wrap: balance; }
+h2 { font-size: 1.55rem; line-height: 1.15; font-weight: 700; font-stretch: 85%; margin: 0 0 0.6rem; text-wrap: balance; }
+h3 { font-size: 1.05rem; font-weight: 700; font-stretch: 90%; margin: 0 0 0.3rem; }
+p { margin: 0 0 0.9rem; }
+.eyebrow { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-2); }
+.dek { font-size: 1.2rem; color: var(--ink-2); line-height: 1.5; margin: 0; }
+.byline { margin-top: 1.1rem; font-family: var(--font-data); font-size: 0.8rem; color: var(--muted); }
+.lede { font-size: 0.95rem; color: var(--ink-2); }
+a { color: var(--s1); text-underline-offset: 0.15em; }
+.num, td.n, .mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+
+/* verdict */
+.verdict { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px;
+           background: var(--rule); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+@media (max-width: 900px) { .verdict { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .verdict { grid-template-columns: 1fr; } }
+.open-q { display: flex; flex-wrap: wrap; gap: 0.4rem 0.8rem; align-items: baseline; margin-top: 0.9rem;
+          font-size: 0.95rem; color: var(--ink-2); }
+.finding { background: var(--surface); padding: 1.1rem 1.2rem 1.2rem; display: grid; gap: 0.45rem; align-content: start; min-width: 0; }
+.finding .q { font-family: var(--font-display); font-weight: 600; font-size: 0.95rem; line-height: 1.3; color: var(--ink-2); }
+.finding .big { font-family: var(--font-data); font-size: 1.7rem; font-weight: 500; line-height: 1.1; }
+.finding p { font-size: 0.95rem; margin: 0; color: var(--ink-2); }
+.chip { justify-self: start; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+        padding: 0.18rem 0.5rem; border-radius: 3px; border: 1px solid var(--rule-strong); color: var(--ink); }
+.chip.yes::before { content: "\2713\00a0"; }
+.chip.no::before { content: "\2717\00a0"; }
+.chip.open::before { content: "?\00a0"; }
+
+/* charts */
+figure { margin: 0; display: grid; gap: 0.8rem; }
+figcaption { font-size: 0.9rem; color: var(--ink-2); max-width: var(--read); }
+.panel-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
+.sm-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem 1.25rem; }
+@media (max-width: 860px) { .panel-grid { grid-template-columns: 1fr; } .sm-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 460px) { .sm-grid { grid-template-columns: 1fr; } }
+.chart { position: relative; min-width: 0; }
+.chart h3 { font-size: 0.92rem; }
+.chart h3 .sub { font-weight: 500; color: var(--muted); }
+svg.viz { display: block; width: 100%; height: auto; overflow: visible; touch-action: pan-y; }
+svg.viz text { font-family: var(--font-data); fill: var(--muted); }
+svg.viz .grid { stroke: var(--rule); stroke-width: 1; }
+svg.viz .zero { stroke: var(--rule-strong); stroke-width: 1; }
+svg.viz .t0 { stroke: var(--ink-2); stroke-width: 1; stroke-dasharray: 3 3; }
+svg.viz .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+svg.viz .s1 { stroke: var(--s1); } svg.viz .s2 { stroke: var(--s2); } svg.viz .s3 { stroke: var(--s3); }
+svg.viz .stock { stroke: var(--stock); }
+svg.viz .bar-fl { fill: var(--s1); } svg.viz .bar-other { fill: var(--stock); }
+svg.viz .hit { fill: transparent; }
+svg.viz .cross { stroke: var(--ink-2); stroke-width: 1; }
+svg.viz .dot { stroke: var(--surface); stroke-width: 2; }
+svg.viz .divider { stroke: var(--rule-strong); stroke-dasharray: 2 3; }
+svg.viz .bar-g.dim { opacity: 0.35; }
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; font-size: 0.85rem; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; }
+.legend i.sq { height: 10px; width: 10px; border-radius: 2px; }
+.tip { position: absolute; pointer-events: none; background: var(--tip-bg); color: var(--tip-fg);
+       font-family: var(--font-data); font-size: 0.76rem; line-height: 1.45; padding: 0.45rem 0.6rem;
+       border-radius: 4px; white-space: nowrap; z-index: 5; transform: translate(-50%, calc(-100% - 10px)); }
+.tip b { font-family: var(--font-display); font-weight: 700; }
+.tip .sw { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 5px; }
+.scroll-x { overflow-x: auto; min-width: 0; }
+.bars-wrap { min-width: 680px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--rule-strong); border-radius: 5px; overflow: hidden; }
+.tabs button { font-size: 0.82rem; font-weight: 600; background: var(--surface); color: var(--ink-2);
+               border: 0; padding: 0.35rem 0.75rem; cursor: pointer; }
+.tabs button + button { border-left: 1px solid var(--rule-strong); }
+.tabs button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.tabs button:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
+.tabs .lab { font-family: var(--font-display); font-size: 0.8rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+
+/* tables */
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+th { font-size: 0.74rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted);
+     text-align: left; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--rule-strong); white-space: nowrap; vertical-align: bottom; }
+td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th.n, td.n { text-align: right; white-space: nowrap; }
+td.n { font-size: 0.84rem; }
+tr.key td { font-weight: 600; }
+tr.sep td { border-top: 1px solid var(--rule-strong); }
+td .ci { display: block; font-size: 0.72rem; color: var(--muted); font-weight: 400; }
+td.storm { font-family: var(--font-display); font-weight: 600; white-space: nowrap; }
+td.note { color: var(--ink-2); font-size: 0.84rem; min-width: 14rem; }
+td.nowrap { white-space: nowrap; }
+.dim-text { color: var(--muted); }
+.flmark { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--s1); margin-left: 0.35rem; vertical-align: 0.1em; }
+.table-card { background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 0.3rem 0.4rem 0.4rem; }
+
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(19rem, 100%), 1fr)); gap: 1.5rem 2.5rem; }
+.two > div { min-width: 0; }
+ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.45rem; }
+ul.plain li::marker { color: var(--muted); }
+.callout { border-left: 3px solid var(--s1); padding: 0.2rem 0 0.2rem 1rem; font-size: 1.05rem; }
+footer { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 1.2rem; }
+footer p { margin-bottom: 0.5rem; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <header class="read">
+    <div class="eyebrow">Research · Tier 1 · price data</div>
+    <h1>Hurricanes &amp; Insurers</h1>
+    <p class="dek">Does the “Pricing Poseidon” result hold out of sample in 2020–2024? An event study of 16 US hurricane landfalls, focused on Florida-concentrated P&amp;C insurers, with 7 earlier storms for comparison.</p>
+    <div class="byline">Idea: Niki · As of 9 November 2026 · prices through 30 June 2025</div>
+  </header>
+
+  <section class="wide" aria-labelledby="v-h">
+    <h2 id="v-h">Results at a glance</h2>
+    <div class="verdict">
+      <div class="finding">
+        <span class="chip yes">confirmed</span>
+        <div class="q">Do FL insurers underperform the market before landfall?</div>
+        <div class="big" id="k-pre">–</div>
+        <p>Abnormal return over the 5 days before, averaged over the 6 Florida landfalls. All 6 negative.</p>
+      </div>
+      <div class="finding">
+        <span class="chip no">not reliable</span>
+        <div class="q">Do they reliably recover afterwards?</div>
+        <div class="big" id="k-post">–</div>
+        <p>Abnormal return over the 20 days from T0. A big gain after Milton, a big loss after Ian.</p>
+      </div>
+      <div class="finding">
+        <span class="chip no">not tradable</span>
+        <div class="q">Buy the FL basket at the last close before landfall?</div>
+        <div class="big" id="k-strat">–</div>
+        <p>Median 5-day excess return over SPY. Worst 20-day case <span class="num" id="k-worst">–</span> (Ian).</p>
+      </div>
+      <div class="finding">
+        <span class="chip yes">confirmed</span>
+        <div class="q">Does uncertainty stay elevated after landfall?</div>
+        <div class="big" id="k-vol">–</div>
+        <p>Rise in realized volatility of FL insurers relative to national insurers over the 20 days from T0.</p>
+      </div>
+    </div>
+    <p class="open-q"><span class="chip open">open · Tier 2</span><span>Do options misprice the risk (volatility risk premium)? This is the paper's core question. It needs historical implied volatility, which is paid data, and is not tested here.</span></p>
+  </section>
+
+  <section class="read" aria-labelledby="s-h">
+    <h2 id="s-h">What it means</h2>
+    <p>The sell-off <em>before</em> landfall is a stable pattern. The four Florida insurers lose clearly against the market in the week before, even for storms that end up making landfall elsewhere. Forecast cones often cross Florida.</p>
+    <p>Whether a recovery follows depends on the actual damage compared with what was feared. Irma in 2017 and Milton in 2024 turned away from the feared target area, and prices quickly made up the drop. Ian in 2022 hit the core of the Florida books: loss estimates kept rising, one carrier went into receivership, and the stocks kept falling.</p>
+    <p class="callout">The size of the pre-landfall drop does not predict the rebound. Each 1% of drop came back by <span class="num" id="k-slope">–</span>% within 5 days on average, but the 95% interval <span class="num" id="k-slope-ci">–</span> includes zero.</p>
+    <p>Uncertainty stays elevated after landfall, for weeks and into the second and third month. That matches the paper. Price data cannot tell whether options price this uncertainty too cheaply or too richly.</p>
+  </section>
+
+  <section class="wide" aria-labelledby="c1-h">
+    <figure>
+      <div class="head">
+        <h2 id="c1-h">Price path around landfall</h2>
+        <figcaption>Cumulative abnormal return vs SPY in %, averaged by group. Zero is the close six days before T0. The dashed line is T0, the first market close after landfall.</figcaption>
+      </div>
+      <div class="legend" aria-hidden="true">
+        <span><i style="background:var(--s1)"></i>FL insurers (UVE, HCI, HRTG, ACIC)</span>
+        <span><i style="background:var(--s2)"></i>National (ALL, TRV, CB, PGR)</span>
+        <span><i style="background:var(--s3)"></i>Reinsurers (RNR, EG, ACGL)</span>
+      </div>
+      <div class="panel-grid" id="panels"></div>
+      <figcaption>The rise of the FL line after day 40 in the left panel comes almost entirely from ACIC after Nicole (+279% in 60 days). The cause is the re-rating after the Florida reform, not the storm.</figcaption>
+    </figure>
+  </section>
+
+  <section class="wide" aria-labelledby="c2-h">
+    <figure>
+      <div class="head">
+        <h2 id="c2-h">Every Florida landfall</h2>
+        <figcaption>Blue: FL basket mean. Grey: the individual stocks. Cumulative abnormal return vs SPY in %, from the close six days before T0. Each panel has its own scale.</figcaption>
+      </div>
+      <div class="sm-grid" id="smalls"></div>
+    </figure>
+  </section>
+
+  <section class="wide" aria-labelledby="t1-h">
+    <div class="head">
+      <h2 id="t1-h">FL basket by storm</h2>
+      <p class="lede">Abnormal return vs SPY in %, mean of UVE, HCI, HRTG and ACIC. Blue dot = Florida landfall.</p>
+    </div>
+    <div class="table-card scroll-x"><table id="basket"></table></div>
+  </section>
+
+  <section class="wide" aria-labelledby="c3-h">
+    <figure>
+      <div class="head">
+        <h2 id="c3-h">The strategy, storm by storm</h2>
+        <figcaption>Buy the FL basket in equal weights at the close of T0−1, the last close before landfall, and sell after 5 or 20 trading days. Bars show the excess return over the benchmark in %.</figcaption>
+      </div>
+      <div class="tabs">
+        <span class="lab">Holding period</span>
+        <div class="seg" role="group" aria-label="Holding period">
+          <button type="button" id="h5" aria-pressed="true">5 days</button>
+          <button type="button" id="h20" aria-pressed="false">20 days</button>
+        </div>
+        <span class="lab">Benchmark</span>
+        <div class="seg" role="group" aria-label="Benchmark">
+          <button type="button" id="bSPY" aria-pressed="true">SPY</button>
+          <button type="button" id="bKIE" aria-pressed="false">KIE</button>
+        </div>
+      </div>
+      <div class="legend" aria-hidden="true">
+        <span><i class="sq" style="background:var(--s1)"></i>Florida landfall</span>
+        <span><i class="sq" style="background:var(--stock)"></i>Landfall elsewhere</span>
+      </div>
+      <div class="scroll-x"><div class="chart bars-wrap" id="bars"></div></div>
+    </figure>
+  </section>
+
+  <section class="wide" aria-labelledby="t2-h">
+    <div class="head">
+      <h2 id="t2-h">The strategy in numbers</h2>
+      <p class="lede">Excess return over SPY in %. The interval is a 95% bootstrap over storm clusters: storms less than 20 trading days apart count as one case. The failure scenarios add FedNat as a fifth basket member for Ian at −100% or −50%, because the stock is delisted and no prices are available.</p>
+    </div>
+    <div class="table-card scroll-x"><table id="strat"></table></div>
+  </section>
+
+  <section class="wide" aria-labelledby="t3-h">
+    <div class="head">
+      <h2 id="t3-h">Groups compared</h2>
+      <p class="lede">Average abnormal return vs SPY in %, with the 95% interval below. n = number of storms.</p>
+    </div>
+    <div class="table-card scroll-x"><table id="groups"></table></div>
+  </section>
+
+  <section class="wide" aria-labelledby="t4-h">
+    <div class="two">
+      <div>
+        <h2 id="t4-h">Volatility after landfall</h2>
+        <p class="lede">Change in realized volatility against days −60 to −21, in log points (×100). FL insurers minus national insurers.</p>
+        <div class="table-card scroll-x"><table id="vol"></table></div>
+      </div>
+      <div>
+        <h2>Check against the brief</h2>
+        <p class="lede">Daily returns in % around Milton 2024 from the data used here. They match the figures in the brief.</p>
+        <div class="table-card scroll-x"><table id="milton"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wide" aria-labelledby="t5-h">
+    <div class="head">
+      <h2 id="t5-h">The events</h2>
+      <p class="lede">Landfall time and wind speed from the official NHC best-track dataset HURDAT2, converted to New York time. T0 is the first market close after landfall. Where the brief's date differs, it is shown alongside.</p>
+    </div>
+    <div class="table-card scroll-x"><table id="events"></table></div>
+  </section>
+
+  <section class="read" aria-labelledby="m-h">
+    <h2 id="m-h">Method</h2>
+    <ul class="plain">
+      <li><strong>Prices:</strong> adjusted daily closes from Yahoo Finance, 2004 to June 2025. ACIC carries the UIHC history, EG the RE history.</li>
+      <li><strong>Abnormal returns:</strong> market model estimated on trading days −250 to −30 before T0, once against SPY and once against KIE. Stocks with more than 30% zero-return days in the estimation window are excluded. This only affects the pre-2020 comparison: UVE for Katrina 2005 (then a penny stock) and ACIC, then UIHC, for Ike, Irene and Sandy.</li>
+      <li><strong>Timing:</strong> T0 is the first close after landfall. For six storms, landfall came after the close or on a weekend. A check run with the brief's dates barely changes the result.</li>
+      <li><strong>Independence:</strong> storms less than 20 trading days apart form one cluster. The 16 events in 2020–2024 make only 7 clusters. Standard errors and bootstrap intervals run over these clusters.</li>
+    </ul>
+  </section>
+
+  <section class="read" aria-labelledby="l-h">
+    <h2 id="l-h">Limits</h2>
+    <ul class="plain">
+      <li>Six Florida landfalls in five clusters is very little. Read the results as case studies, not as hard statistics.</li>
+      <li>Other drivers overlap the storms: the Florida reform of 2022/23, the hard reinsurance market, earnings (HRTG after Debby) and market shocks (Debby fell on 5 August 2024, Ike on the Lehman day).</li>
+      <li>The left tail is partly missing. UPC sits inside ACIC; FedNat is missing entirely and only enters as a scenario.</li>
+      <li>Before 2020 the FL stocks only exist from 2007/08 (HRTG from 2014), so the comparison is thin.</li>
+      <li>The observation in the brief that insurers beat the market in the month after landfall does not hold here. National insurers and reinsurers end near zero after 20 days.</li>
+    </ul>
+  </section>
+
+  <section class="read" aria-labelledby="n-h">
+    <h2 id="n-h">Next steps</h2>
+    <ul class="plain">
+      <li><strong>Tier 2:</strong> get prices for historical implied volatility (ORATS, Cboe DataShop, OptionMetrics). First check whether UVE, HCI, HRTG and ACIC have enough option trading at all.</li>
+      <li><strong>Forecast vs outcome:</strong> compare the NHC forecast cone on the day before landfall with the actual landfall location. It is the one candidate that could separate rebounds like Milton from cases like Ian in advance.</li>
+    </ul>
+  </section>
+
+  <footer class="read">
+    <p>Paper: Kruttli, Roth Tran, Watugala, “Pricing Poseidon: Extreme Weather Uncertainty and Firm Return Dynamics”, Journal of Finance 80(2), 2025, pp. 783–832.</p>
+    <p>Landfalls: <a href="https://www.nhc.noaa.gov/data/hurdat/" target="_blank" rel="noopener">NHC HURDAT2</a>. Prices: Yahoo Finance. Not investment advice.</p>
+  </footer>
+</main>
+
+<script>
+const D = {"panels":[{"key":"fl","title":"2020–24 · Landfall in Florida","storms":["Ian","Nicole","Idalia","Debby","Helene","Milton"],"series":{"FL":{"y":[0.0,-0.08,0.29,-4.91,-6.89,-8.45,-6.12,-7.39,-7.54,-7.54,-6.15,-7.34,-10.29,-10.88,-10.32,-7.84,-5.73,-7.64,-6.99,-7.41,-7.42,-7.55,-8.87,-8.89,-6.26,-3.71,-5.85,-4.12,-4.2,-3.7,-2.31,-3.16,-3.16,-0.76,0.34,1.82,1.56,1.43,0.58,0.2,1.97,2.23,2.39,1.64,1.52,1.58,2.48,3.58,4.06,5.44,2.24,3.79,4.4,5.89,6.64,7.17,7.93,7.23,7.63,9.36,9.15,9.87,11.67,12.48,12.73,13.22,16.17],"n":6},"National":{"y":[0.0,-0.38,0.42,-0.74,-1.04,-0.99,-1.52,-1.55,-1.33,-1.31,-0.61,0.15,-0.94,-0.12,0.19,0.38,0.58,0.41,0.5,0.68,1.34,1.62,0.58,0.9,1.38,1.35,0.9,1.24,0.89,1.13,1.47,1.24,0.92,1.47,1.74,1.88,2.43,2.92,2.72,2.94,2.88,2.86,2.88,2.2,2.54,2.9,2.89,1.95,1.88,2.3,1.02,0.79,0.2,0.0,-0.06,0.08,0.05,-0.16,-0.08,-0.5,-0.69,-0.96,-1.49,-1.77,-1.39,-1.32,-1.29],"n":6},"Reinsurer":{"y":[0.0,0.73,1.55,-0.4,-1.25,0.52,0.42,0.37,0.59,0.19,0.8,1.13,-0.1,0.28,1.36,1.48,1.48,1.6,1.95,2.13,2.6,2.25,1.43,1.76,1.99,2.22,1.66,2.32,2.61,2.61,2.22,2.73,3.61,4.09,4.67,4.84,5.44,5.17,4.66,4.83,4.89,4.98,4.89,5.06,5.5,5.64,5.68,5.44,5.04,6.37,5.06,3.71,4.17,3.33,3.2,2.78,2.87,2.57,2.43,1.87,1.35,1.59,0.85,0.67,1.59,1.94,2.71],"n":6}}},{"key":"other","title":"2020–24 · Landfall anderswo","storms":["Hanna","Isaias","Laura","Sally","Delta","Zeta","Ida","Nicholas","Beryl","Francine"],"series":{"FL":{"y":[0.0,-0.59,-0.45,-1.28,-2.41,-3.66,-3.56,-3.62,-3.51,-1.65,-1.86,-2.33,-2.02,-1.5,-0.73,-0.62,-0.75,-0.98,-2.29,-1.83,-1.23,-1.21,-0.98,-3.31,-3.66,-4.5,-3.43,-3.18,-4.11,-4.13,-3.15,-2.66,-1.68,-1.24,-1.02,-1.22,-1.41,-1.83,-1.74,-2.32,-2.49,-3.66,-3.74,-4.14,-2.08,-2.19,-3.62,-3.44,-2.9,-3.35,-2.38,-3.53,-3.29,-3.6,-3.76,-4.12,-3.76,-3.1,-2.51,-3.5,-3.91,-3.91,-3.24,-3.04,-2.67,-3.43,-4.33],"n":10},"National":{"y":[0.0,-0.59,-0.38,-0.11,-0.43,-0.59,-0.73,-0.91,-0.59,-0.46,-0.94,-0.83,-0.73,-0.18,-0.09,-0.43,-0.41,-0.57,-0.57,-0.45,-0.07,-0.2,0.02,-1.06,-1.12,-1.14,-1.58,-1.37,-1.46,-1.06,-1.09,-0.27,-0.23,0.31,0.61,0.66,0.98,0.54,0.61,0.67,0.05,-0.17,0.11,-0.2,0.76,1.19,0.83,1.15,1.33,1.58,1.6,1.47,1.64,1.01,0.79,0.79,1.25,1.24,1.2,1.21,1.2,1.17,1.18,0.67,0.73,0.96,1.47],"n":10},"Reinsurer":{"y":[0.0,-0.39,-0.22,-0.67,-1.23,-1.51,-1.62,-1.77,-1.29,-0.99,-1.61,-1.45,-1.32,-0.63,-0.24,-0.31,-0.69,-1.1,-1.07,-0.99,-0.52,-0.83,-0.31,-1.44,-1.67,-1.68,-1.22,-1.06,-0.87,-1.04,-1.1,-0.41,-0.31,-0.07,0.11,-0.17,0.33,0.02,-0.41,-0.56,-0.47,-1.31,-1.51,-1.88,-0.4,0.36,-0.01,-0.08,-0.32,-0.22,0.14,-0.11,0.67,-0.05,-0.14,0.25,0.25,0.47,0.53,0.1,0.04,0.4,0.91,0.67,0.45,0.72,0.88],"n":10}}},{"key":"pre","title":"Vor 2020 · Vergleich","storms":["Katrina","Ike","Irene","Sandy","Harvey","Irma","Michael"],"series":{"FL":{"y":[0.0,0.24,-2.46,-1.82,-3.14,-2.73,-0.5,-1.11,-1.43,-2.34,-1.75,-4.91,-3.96,-4.78,-4.48,-2.07,-2.09,-0.7,-0.19,0.1,-0.75,-3.53,-3.8,-4.96,-6.08,-7.8,-0.66,-1.21,-0.96,-0.64,0.06,0.77,1.9,1.78,2.65,1.89,3.44,2.75,2.35,3.08,2.28,4.97,5.73,5.58,5.99,6.3,3.61,3.09,5.07,4.18,3.48,2.61,0.73,-0.02,0.71,0.48,1.79,1.69,1.91,3.7,3.22,3.11,3.4,1.78,0.8,1.19,2.07],"n":6},"National":{"y":[0.0,-0.06,-0.4,-0.29,-1.22,-0.68,-0.39,-0.43,-1.33,-0.91,-0.83,-1.81,-0.86,-1.47,-1.11,-0.91,-1.0,-0.65,-0.9,-0.47,-0.5,0.03,-1.38,-2.01,-1.67,-0.9,-0.77,0.01,0.71,-0.38,0.54,0.03,0.63,0.78,0.98,1.77,1.08,0.38,1.13,0.57,0.82,1.03,1.23,1.32,1.85,1.53,1.3,2.17,2.29,3.78,3.89,3.4,3.54,2.52,2.49,4.07,4.2,4.24,4.27,4.61,3.86,4.37,3.74,3.98,5.14,4.18,3.73],"n":7},"Reinsurer":{"y":[0.0,0.15,-0.7,-0.72,-1.76,-1.2,-0.72,-0.7,-1.47,-1.45,-0.47,-2.46,-2.54,-3.78,-2.98,-2.84,-2.1,-1.71,-2.09,-2.38,-1.78,-1.19,-2.0,-2.14,-2.42,-2.13,-1.73,-2.02,-2.01,-2.64,-1.87,-2.04,-1.7,-1.44,-1.13,-0.23,-0.42,-1.02,-0.6,-1.62,-1.31,-1.73,-1.52,-1.5,-1.16,-0.53,-0.69,-0.47,-0.93,-0.45,0.21,-0.24,-0.35,-0.68,0.04,1.17,0.78,0.37,0.7,1.41,1.77,2.02,1.82,0.9,1.75,0.96,0.4],"n":7}}}],"fl_events":[{"storm":"Irma","year":2017,"tickers":{"UVE":[0.0,0.38,-13.36,-12.32,-23.77,-15.38,-3.31,-1.87,1.08,0.95,2.3,-1.87,-0.69,-0.66,-1.5,2.71,5.13,5.59,9.12,11.04,10.27,13.33,11.48,10.34,10.17,10.16,11.27,12.11,13.27,14.55,14.69,15.23,15.22,16.61,16.44,13.91,14.0,12.83,13.88,16.31,15.25,13.9,12.96,12.04,11.01,10.28,10.17,10.75,10.62,19.01,19.11,19.67,18.43,20.06,17.19,22.44,23.86,24.7,24.31,23.81,23.75,23.81,25.08,22.67,22.6,23.18,23.09],"HCI":[0.0,-1.05,-20.54,-15.19,-23.76,-21.08,-4.68,-6.62,-1.9,-1.01,-1.2,-3.08,-7.63,-6.02,-4.08,-1.18,0.88,-2.66,-1.85,-1.39,-1.55,-3.0,-5.3,-5.8,-6.61,-6.88,-5.58,-4.15,-5.44,-4.4,-2.85,-3.45,-3.64,-2.61,-2.86,-4.58,-6.27,-6.03,-5.24,-4.2,-5.93,-7.73,-8.34,-9.57,-10.22,-22.7,-25.0,-23.68,-22.99,-21.87,-21.42,-23.99,-24.81,-26.3,-29.93,-29.56,-29.57,-30.15,-30.76,-30.89,-30.9,-32.6,-32.14,-33.6,-34.28,-32.52,-34.46],"HRTG":[0.0,-1.12,-17.01,-10.17,-15.43,-16.31,3.96,9.34,17.29,16.14,16.94,14.3,8.55,8.45,8.42,12.77,18.22,17.64,18.81,20.09,20.12,25.65,24.63,25.82,27.0,28.81,29.29,30.16,30.08,32.91,33.34,35.59,36.27,38.56,37.96,37.53,38.1,39.37,41.52,43.19,41.44,41.09,39.47,36.67,42.19,42.35,44.39,43.42,43.43,45.71,46.88,45.53,44.9,47.24,44.4,49.72,52.31,50.06,49.45,48.98,49.8,54.79,51.56,50.46,50.97,51.53,50.13],"ACIC":[0.0,0.89,-4.99,-3.09,-9.83,-9.51,0.55,-0.11,1.95,2.37,2.0,1.06,-0.68,-0.06,0.33,1.04,2.32,1.02,1.09,1.69,2.31,4.62,3.17,2.6,-0.13,-0.5,-0.84,1.12,1.33,0.79,1.55,0.7,-1.39,-1.25,-0.51,-0.97,-1.11,-2.42,-0.95,-1.38,-3.67,-4.11,-3.95,-4.63,-4.14,-5.62,-5.83,-5.34,-6.29,-4.71,-3.4,-4.39,-4.7,-4.62,-5.65,-4.19,-2.26,-2.77,-3.13,-3.73,-2.53,-2.23,-0.8,-1.77,-1.84,-1.88,-1.7]},"mean":[0.0,-0.23,-13.98,-10.19,-18.2,-15.57,-0.87,0.18,4.6,4.61,5.01,2.6,-0.12,0.43,0.79,3.83,6.64,5.4,6.79,7.85,7.79,10.15,8.5,8.24,7.61,7.9,8.53,9.81,9.81,10.96,11.68,12.02,11.61,12.83,12.76,11.47,11.18,10.94,12.3,13.48,11.77,10.79,10.04,8.63,9.71,6.08,5.93,6.29,6.19,9.53,10.29,9.21,8.45,9.09,6.5,9.6,11.08,10.46,9.97,9.54,10.03,10.94,10.93,9.44,9.36,10.08,9.27]},{"storm":"Michael","year":2018,"tickers":{"UVE":[0.0,1.13,-0.62,-0.65,-0.08,1.52,-1.34,-3.08,-4.49,-3.8,-3.95,-3.21,-2.28,-1.84,-0.32,-1.36,-5.94,-2.79,-0.64,-0.03,-9.83,-13.73,-15.1,-11.57,-12.49,-10.54,-10.67,-9.75,-9.89,-9.11,-10.01,-11.28,-12.27,-11.01,-10.1,-12.88,-12.1,-11.91,-13.9,-15.69,-14.6,-14.48,-15.1,-15.16,-18.92,-18.09,-19.88,-22.37,-24.43,-25.12,-22.33,-25.05,-27.73,-27.17,-25.04,-28.33,-29.93,-31.53,-28.45,-28.87,-29.22,-30.34,-31.9,-32.92,-32.75,-34.71,-33.2],"HCI":[0.0,1.36,2.23,2.42,1.24,1.47,0.69,0.82,-2.37,-1.86,-1.81,-0.75,-0.21,-0.54,-0.28,-1.92,-1.68,-0.3,1.96,5.06,4.8,1.16,2.96,4.06,2.8,2.87,14.46,18.75,21.81,23.9,21.18,22.55,21.95,21.72,26.51,23.78,24.27,25.21,21.83,22.49,22.08,22.44,22.92,24.59,22.34,24.32,23.85,23.78,23.97,23.74,20.68,23.03,20.47,20.42,20.48,20.83,19.57,21.64,19.59,20.73,21.82,21.17,19.77,19.14,20.77,18.43,16.62],"HRTG":[0.0,-1.87,-2.05,1.26,-0.37,0.79,-1.09,-3.6,-7.22,-7.83,-5.97,-6.79,-6.81,-6.79,-5.1,-4.97,-6.58,-5.39,-1.54,-0.96,0.25,-1.1,6.21,15.16,12.98,16.03,13.3,17.13,13.9,14.84,14.11,12.41,13.57,12.03,14.41,13.85,15.41,15.8,14.91,13.1,13.82,13.22,13.04,10.39,6.85,10.99,9.03,7.1,6.89,6.82,5.89,5.94,8.24,10.05,8.85,10.66,8.32,6.82,6.86,7.11,8.89,8.81,10.33,8.75,10.36,9.17,9.67],"ACIC":[0.0,1.09,0.1,1.96,-1.67,0.58,-0.71,-1.28,-1.11,-0.84,-1.2,-0.6,-0.0,-1.23,-0.87,-0.78,0.53,0.67,1.5,1.96,0.1,-2.99,-1.97,-7.57,-14.67,-11.01,-10.17,-8.5,-10.1,-6.65,-7.15,-6.23,-7.45,-7.31,-5.84,-5.86,-5.28,-4.74,-5.64,-9.51,-6.34,-7.44,-6.28,-8.11,-8.79,-8.73,-9.85,-9.65,-10.88,-10.96,-12.67,-14.32,-15.51,-15.94,-15.92,-17.84,-18.7,-19.45,-20.88,-19.37,-18.04,-18.23,-20.78,-21.48,-21.74,-22.62,-23.52]},"mean":[0.0,0.43,-0.09,1.25,-0.22,1.09,-0.61,-1.78,-3.8,-3.58,-3.23,-2.84,-2.32,-2.6,-1.64,-2.26,-3.42,-1.95,0.32,1.51,-1.17,-4.16,-1.98,0.02,-2.84,-0.66,1.73,4.41,3.93,5.75,4.53,4.36,3.95,3.86,6.24,4.72,5.57,6.09,4.3,2.6,3.74,3.43,3.64,2.93,0.37,2.13,0.79,-0.29,-1.12,-1.38,-2.11,-2.6,-3.63,-3.16,-2.91,-3.67,-5.18,-5.63,-5.72,-5.1,-4.14,-4.65,-5.64,-6.63,-5.84,-7.43,-7.61]},{"storm":"Ian","year":2022,"tickers":{"UVE":[0.0,1.21,0.1,-8.78,-9.13,-18.51,-19.6,-13.81,-11.89,-16.54,-10.91,-11.05,-18.27,-25.93,-24.34,-25.24,-16.49,-12.42,-13.43,-16.88,-16.32,-13.82,-18.82,-20.78,-17.9,-16.59,-16.91,-14.62,-16.0,-12.94,-12.08,-10.65,-12.08,-9.39,-9.21,-11.16,-13.47,-10.14,-12.46,-14.54,-11.5,-10.61,-8.5,-9.42,-8.82,-6.4,-7.57,-7.88,-10.04,-8.96,-7.02,-5.85,-5.03,-5.3,-1.42,-3.48,-3.26,-1.04,-11.6,-12.3,-16.71,-14.98,-15.3,-10.56,-9.07,-1.86,-2.32],"HCI":[0.0,1.51,0.81,-4.23,-5.33,-9.2,-10.18,-11.5,-13.62,-16.79,-14.58,-16.35,-24.16,-29.07,-17.36,-20.34,-17.17,-15.74,-15.61,-12.2,-17.16,-24.42,-32.74,-39.45,-42.73,-30.02,-26.1,-22.5,-21.3,-16.23,-12.83,-12.71,-12.9,-16.23,-16.46,-19.69,-10.13,-2.14,0.29,2.35,-0.42,-5.73,-7.21,-9.15,-8.63,-6.29,-7.18,-8.3,-11.1,-9.79,-9.75,-8.01,-7.95,-8.57,-5.42,-9.74,-5.46,-13.07,-13.06,-13.66,-12.57,-13.22,-15.16,-9.02,-4.05,-2.88,2.23],"HRTG":[0.0,-3.06,-3.66,-11.53,-17.15,-25.07,-11.28,-9.12,-13.59,-13.85,-9.22,-13.3,-17.88,-24.27,-32.91,-43.18,-44.53,-47.38,-47.41,-53.5,-56.1,-55.33,-62.8,-55.91,-59.3,-60.16,-55.04,-56.46,-55.06,-51.53,-35.62,-35.31,-34.31,-33.88,-32.54,-38.94,-51.84,-58.32,-49.91,-56.47,-55.34,-53.81,-53.32,-56.23,-52.02,-53.41,-46.44,-34.16,-36.33,-34.08,-36.04,-29.66,-31.59,-28.29,-31.03,-31.83,-34.54,-37.47,-42.73,-38.94,-33.67,-27.32,-17.29,-12.05,-11.87,-11.09,-7.23],"ACIC":[0.0,1.53,-1.22,-8.71,-9.07,-12.78,-15.11,-20.94,-14.62,-8.08,-8.19,-20.49,-16.13,-15.52,-14.62,-21.86,-22.99,-31.41,-35.3,-34.49,-32.83,-33.92,-36.97,-48.52,-51.22,-49.44,-50.87,-50.11,-55.98,-52.61,-51.91,-52.33,-48.76,-49.26,-51.9,-54.33,-62.85,-65.95,-74.73,-67.52,-67.65,-60.86,-63.03,-65.76,-73.94,-74.38,-74.37,-77.17,-72.4,-68.65,-70.25,-69.78,-66.17,-67.64,-69.42,-59.22,-56.37,-58.33,-26.49,-19.89,-16.98,-15.0,-11.79,-10.83,17.49,29.45,72.45]},"mean":[0.0,0.3,-1.0,-8.31,-10.17,-16.39,-14.04,-13.84,-13.43,-13.82,-10.73,-15.29,-19.11,-23.7,-22.31,-27.65,-25.29,-26.74,-27.94,-29.27,-30.6,-31.87,-37.83,-41.17,-42.79,-39.06,-37.23,-35.92,-37.08,-33.33,-28.11,-27.75,-27.01,-27.19,-27.53,-31.03,-34.57,-34.14,-34.2,-34.04,-33.73,-32.75,-33.01,-35.14,-35.85,-35.12,-33.89,-31.88,-32.47,-30.37,-30.76,-28.32,-27.69,-27.45,-26.82,-26.07,-24.91,-27.48,-23.47,-21.2,-19.98,-17.63,-14.88,-10.61,-1.87,3.41,16.28]},{"storm":"Nicole","year":2022,"tickers":{"UVE":[0.0,-1.28,1.55,1.88,0.09,-2.07,1.41,-0.77,-2.7,0.5,1.54,3.8,3.03,3.78,6.35,5.33,5.17,3.16,4.39,6.48,7.8,8.77,8.65,12.69,10.77,11.14,13.51,3.11,2.55,-1.71,0.18,0.01,4.9,6.54,13.9,13.59,14.34,13.44,10.9,9.95,11.52,8.42,10.9,9.45,11.47,12.64,15.58,17.8,21.69,22.12,23.83,25.68,25.79,26.0,23.9,23.81,24.31,24.38,24.05,24.5,29.63,28.36,27.93,29.33,29.41,29.83,27.65],"HCI":[0.0,0.03,-3.16,-3.24,-6.3,3.52,11.5,14.07,16.35,13.73,8.64,7.35,5.58,6.3,8.78,8.05,7.12,4.56,6.06,6.18,8.1,8.35,7.99,11.37,7.24,11.67,4.28,4.42,3.98,5.28,4.9,3.19,9.55,14.69,16.0,21.34,23.8,23.93,23.01,29.38,26.03,26.8,28.42,26.32,27.27,28.17,31.32,31.06,34.77,36.25,41.8,45.76,46.63,47.0,50.94,53.48,53.84,54.5,54.91,53.96,55.13,54.35,56.89,56.09,55.5,56.47,53.4],"HRTG":[0.0,1.06,1.37,2.63,-3.82,-16.59,-23.47,-15.14,-21.65,-20.6,-19.02,-18.53,-21.48,-17.26,-18.76,-11.85,0.43,-1.64,0.6,-1.59,4.78,2.85,6.26,3.62,2.81,0.04,-2.85,-8.23,-4.51,0.8,7.31,17.42,22.71,22.86,23.52,27.47,20.25,16.49,12.63,17.44,19.03,22.39,22.05,24.28,21.68,29.01,32.26,38.36,43.36,41.57,40.65,41.24,46.59,44.97,50.81,46.66,51.17,52.21,55.92,54.43,54.34,58.53,55.39,46.01,46.74,43.82,45.81],"ACIC":[0.0,3.89,3.6,1.2,-0.98,-9.15,-12.19,-20.73,-13.21,-13.1,-6.01,-7.89,-10.37,-18.26,-18.48,-18.22,-20.74,-15.64,-11.61,-13.06,-12.32,-8.43,-9.55,-11.0,-0.52,2.58,0.92,32.98,39.82,43.03,45.38,48.91,50.17,78.77,90.94,134.27,120.84,111.57,115.63,103.99,152.08,147.39,148.56,150.02,147.17,154.97,168.39,180.72,175.98,194.37,183.26,203.82,220.19,212.48,215.31,217.22,223.0,225.1,226.16,227.7,225.29,249.99,255.72,255.91,262.37,260.21,270.01]},"mean":[0.0,0.92,0.84,0.62,-2.75,-6.07,-5.69,-5.64,-5.3,-4.87,-3.71,-3.82,-5.81,-6.36,-5.53,-4.17,-2.01,-2.39,-0.14,-0.5,2.09,2.88,3.34,4.17,5.08,6.36,3.97,8.07,10.46,11.85,14.44,17.38,21.83,30.71,36.09,49.17,44.81,41.36,40.54,40.19,52.16,51.25,52.48,52.52,51.9,56.2,61.89,66.99,68.95,73.58,72.39,79.13,84.8,82.61,85.24,85.29,88.08,89.05,90.26,90.15,91.1,97.81,98.98,96.84,98.5,97.58,99.22]},{"storm":"Idalia","year":2023,"tickers":{"UVE":[0.0,0.14,-1.02,-4.78,-10.3,-7.11,-4.97,-8.29,-8.01,-10.65,-13.03,-12.44,-10.13,-8.99,-7.84,-5.32,-4.81,-6.22,-4.86,-4.01,-6.17,-3.43,-1.34,-0.75,1.48,1.97,1.1,3.11,0.36,1.75,0.84,-0.8,-1.25,-1.65,-2.91,-0.47,0.29,-1.06,-0.82,1.71,-0.02,-0.21,-0.3,1.45,2.19,3.84,6.72,4.16,12.06,13.4,15.84,13.27,13.19,10.9,13.7,15.59,12.68,12.61,10.7,10.41,10.05,11.98,11.93,11.51,10.69,10.45,12.02],"HCI":[0.0,0.02,0.06,-2.39,-11.31,-8.36,-7.51,-8.88,-10.12,-12.98,-14.76,-10.54,-8.86,-11.33,-7.99,-6.12,-6.53,-10.08,-10.87,-8.88,-10.75,-11.32,-11.43,-8.35,-4.44,-6.76,-5.38,-3.95,-4.37,-5.23,-4.48,-4.01,-3.21,-3.56,-2.55,-0.24,0.13,2.54,2.03,2.84,2.86,1.02,2.27,2.94,2.94,2.71,2.06,2.3,2.05,4.26,7.42,6.65,6.47,5.94,8.67,30.01,27.51,25.63,26.91,27.99,28.32,30.94,33.65,32.39,34.46,34.79,36.62],"HRTG":[0.0,-2.38,1.11,-2.9,-10.59,-11.54,-3.39,-3.12,-3.77,-13.21,-17.36,-18.62,-14.16,-17.86,-14.08,-10.05,-8.0,-5.06,-5.38,-5.62,-6.65,-7.33,-7.36,-3.29,14.53,18.3,16.96,19.15,18.77,15.89,15.67,5.72,0.15,2.71,0.83,3.92,4.29,-1.0,-9.89,-4.59,-5.53,-3.73,0.9,-1.75,-0.17,1.25,8.45,9.35,8.17,7.93,10.95,10.47,20.71,21.06,29.28,27.38,26.48,23.77,20.77,19.45,22.82,20.97,25.16,19.19,22.95,20.97,32.28],"ACIC":[0.0,2.27,-0.99,-2.63,-3.7,-2.79,-0.34,-4.98,-2.88,-6.68,-12.62,-13.88,-12.46,-8.92,-10.37,-11.33,-10.92,-13.99,-15.72,-15.94,-20.29,-22.56,-22.2,-2.8,-7.42,-5.15,-23.94,-25.35,-29.11,-30.82,-26.0,-29.7,-30.1,-31.05,-31.97,-33.8,-36.32,-35.35,-36.8,-38.13,-38.06,-40.1,-41.53,-44.43,-45.26,-45.16,-46.87,-48.5,-47.39,-49.0,-50.99,-52.65,-54.2,-55.99,-59.01,-58.16,-59.3,-61.69,-69.66,-33.23,-39.55,-49.35,-51.67,-53.42,-52.21,-54.59,-54.58]},"mean":[0.0,0.01,-0.21,-3.17,-8.98,-7.45,-4.05,-6.32,-6.2,-10.88,-14.44,-13.87,-11.4,-11.78,-10.07,-8.2,-7.56,-8.84,-9.21,-8.61,-10.96,-11.16,-10.58,-3.8,1.04,2.09,-2.82,-1.76,-3.59,-4.6,-3.49,-7.2,-8.6,-8.39,-9.15,-7.65,-7.9,-8.72,-11.37,-9.54,-10.19,-10.76,-9.66,-10.45,-10.08,-9.34,-7.41,-8.17,-6.28,-5.85,-4.19,-5.57,-3.46,-4.52,-1.84,3.7,1.84,0.08,-2.82,6.16,5.41,3.64,4.77,2.42,3.97,2.91,6.59]},{"storm":"Debby","year":2024,"tickers":{"UVE":[0.0,2.7,5.69,2.79,1.07,2.65,0.62,0.43,-0.36,-0.36,1.01,0.04,2.14,3.92,5.11,6.46,5.1,5.78,5.3,5.2,7.14,5.89,5.86,6.77,8.05,8.07,8.15,7.79,7.83,7.03,9.43,8.11,3.61,4.22,5.72,8.06,10.12,13.6,11.22,8.51,8.63,9.15,8.59,9.5,8.31,8.81,6.24,5.37,4.3,3.17,-15.94,-11.84,-16.5,-4.71,-4.88,-4.49,-1.65,-1.38,-0.07,-1.38,-4.5,-4.62,-2.18,-0.0,-4.36,-0.68,-0.37],"HCI":[0.0,1.38,4.38,2.16,-0.49,-0.32,-1.19,-4.51,-3.26,-1.94,-0.2,-1.74,0.28,1.26,0.9,2.09,-0.48,-0.09,-3.01,-4.3,-0.38,0.64,-0.85,-1.72,-0.85,-0.59,-1.32,0.43,3.65,2.82,3.92,-0.82,-2.38,-0.13,2.58,4.91,7.62,8.41,6.75,5.78,6.36,7.42,6.23,8.39,7.1,6.2,6.66,11.26,11.96,13.08,-4.03,-2.72,-0.74,10.97,10.76,14.08,14.49,13.89,14.35,16.65,13.14,9.94,11.07,17.49,13.14,13.81,12.79],"HRTG":[0.0,-1.97,6.28,2.06,-1.51,-3.07,-5.23,-5.95,-3.82,5.05,31.16,35.03,45.85,52.33,60.07,64.13,66.81,60.08,62.97,65.01,64.22,69.04,68.84,67.01,72.53,71.06,72.49,74.85,72.43,68.81,68.96,64.09,64.19,64.76,65.15,60.88,65.36,68.12,67.64,64.37,60.91,65.65,69.37,65.05,62.16,40.62,37.04,37.01,37.85,39.32,16.12,17.85,18.08,27.12,27.42,25.24,30.14,27.65,22.64,20.92,21.33,19.81,35.93,37.62,26.77,26.07,24.88],"ACIC":[0.0,-1.56,1.28,-1.16,-2.55,-5.75,-4.35,-1.77,-1.45,-7.34,-6.25,-15.1,-11.07,-11.1,-11.08,-10.42,-14.21,-14.66,-15.6,-16.32,-16.0,-16.55,-17.12,-18.75,-19.28,-18.48,-18.74,-20.06,-17.95,-18.96,-17.56,-20.83,-24.21,-24.63,-23.54,-23.84,-22.13,-21.46,-21.45,-23.01,-23.51,-26.95,-29.15,-24.16,-24.88,-26.58,-28.25,-29.45,-28.79,-28.39,-43.11,-43.65,-46.66,-38.18,-34.69,-38.95,-35.51,-33.26,-36.17,-37.74,-39.05,-39.34,-39.64,-17.97,-22.55,-23.61,-26.35]},"mean":[0.0,0.14,4.41,1.46,-0.87,-1.62,-2.54,-2.95,-2.22,-1.15,6.43,4.56,9.3,11.6,13.75,15.57,14.3,12.78,12.41,12.4,13.74,14.76,14.19,13.33,15.11,15.02,15.15,15.75,16.49,14.92,16.19,12.64,10.3,11.05,12.48,12.5,15.24,17.17,16.04,13.91,13.1,13.82,13.76,14.7,13.18,7.26,5.42,6.05,6.33,6.79,-11.74,-10.09,-11.46,-1.2,-0.35,-1.03,1.87,1.72,0.19,-0.39,-2.27,-3.55,1.3,9.28,3.25,3.9,2.74]},{"storm":"Helene","year":2024,"tickers":{"UVE":[0.0,-2.79,-2.71,-2.24,-2.88,-2.01,-3.27,-2.81,-5.52,-6.44,-7.59,-8.72,-27.97,-23.86,-28.54,-16.83,-17.02,-16.63,-13.92,-13.68,-12.43,-13.78,-16.98,-17.17,-14.86,-12.74,-17.16,-13.52,-13.27,-12.88,-13.28,-12.54,-15.87,-12.22,-9.08,-8.68,-7.94,-4.37,-5.05,-5.14,-5.26,-4.26,-4.89,-5.59,-5.99,-5.03,-4.06,-3.95,-5.5,-5.2,-6.37,-7.42,-8.05,-6.86,-7.25,-9.7,-9.88,-12.6,-11.77,-13.41,-12.99,-13.97,-13.94,-15.06,-15.35,-15.86,-15.68],"HCI":[0.0,-1.01,-0.48,0.52,-0.71,1.38,0.06,-0.92,-0.45,4.1,4.76,5.78,-11.32,-10.11,-8.21,3.46,3.17,6.41,6.81,6.14,6.55,8.79,5.24,2.0,3.12,9.49,5.09,5.7,4.62,3.64,2.61,1.05,1.14,3.11,3.21,1.33,3.7,-0.11,0.8,-2.31,-0.03,-1.93,-5.52,-4.77,-6.55,-4.94,-4.3,-3.23,-1.03,-0.54,3.37,4.59,0.47,-1.17,-2.22,-2.61,-2.58,-4.91,-5.91,-6.17,-5.51,-7.9,-7.74,-9.59,-7.75,-6.61,-4.57],"HRTG":[0.0,-3.25,-6.92,-2.42,1.36,-3.26,-6.14,-27.99,-31.14,-31.27,-30.4,-29.51,-52.28,-51.15,-51.39,-42.32,-42.44,-45.15,-39.89,-42.69,-47.78,-49.8,-49.37,-50.93,-34.37,-32.87,-43.78,-44.73,-46.09,-43.72,-45.71,-47.85,-50.6,-42.76,-41.96,-40.37,-36.0,-35.29,-39.43,-39.23,-41.49,-38.84,-36.22,-37.43,-37.4,-37.23,-37.17,-37.06,-38.43,-39.01,-39.44,-40.53,-42.86,-39.23,-40.27,-44.54,-46.9,-42.42,-41.46,-43.08,-41.54,-43.12,-45.75,-48.38,-48.33,-47.34,-49.75],"ACIC":[0.0,-1.4,-1.7,-4.94,-6.99,-1.78,-2.34,-3.83,-5.42,-6.44,-5.62,-4.96,-19.59,-19.86,-22.64,-14.0,-10.29,-14.29,-10.75,-8.29,-11.02,-12.38,-13.54,-13.66,-13.87,8.0,3.59,2.74,0.19,3.43,4.93,5.62,2.72,8.93,10.2,4.38,7.78,9.58,10.14,7.71,5.69,7.05,7.92,7.58,6.54,8.43,9.04,9.39,8.39,9.38,9.32,7.02,5.4,12.52,12.43,10.83,10.28,9.75,10.61,8.86,8.85,9.1,8.16,7.19,4.5,4.18,2.64]},"mean":[0.0,-2.11,-2.95,-2.27,-2.31,-1.42,-2.93,-8.89,-10.63,-10.01,-9.71,-9.35,-27.79,-26.25,-27.7,-17.42,-16.64,-17.41,-14.44,-14.63,-16.17,-16.79,-18.66,-19.94,-14.99,-7.03,-13.06,-12.45,-13.64,-12.39,-12.86,-13.43,-15.65,-10.74,-9.41,-10.84,-8.11,-7.55,-8.38,-9.74,-10.28,-9.49,-9.68,-10.05,-10.85,-9.69,-9.12,-8.71,-9.14,-8.84,-8.28,-9.08,-11.26,-8.69,-9.33,-11.5,-12.27,-12.54,-12.13,-13.45,-12.8,-13.97,-14.82,-16.46,-16.73,-16.41,-16.84]},{"storm":"Milton","year":2024,"tickers":{"UVE":[0.0,-1.16,-2.31,-21.55,-17.47,-22.17,-10.46,-10.67,-10.31,-7.59,-7.37,-6.13,-7.49,-10.7,-10.9,-8.58,-6.47,-10.9,-7.28,-7.03,-6.65,-7.02,-6.3,-9.64,-6.01,-2.93,-2.55,-1.83,1.73,1.05,0.94,0.83,1.85,1.2,0.48,0.07,1.02,1.97,2.07,0.5,0.79,-0.4,-1.46,-2.1,-0.93,-1.33,-3.79,-3.97,-6.69,-5.89,-7.52,-7.11,-8.11,-8.07,-9.14,-9.45,-9.98,-9.83,-9.6,-9.59,-11.08,-10.96,-8.52,-10.8,-14.57,-16.58,-15.62],"HCI":[0.0,0.69,1.77,-15.33,-14.06,-12.12,-0.41,-0.66,2.63,3.05,2.43,2.87,5.15,1.63,-1.58,-0.45,5.96,1.6,2.25,1.2,0.25,-0.79,-2.31,-2.19,-0.16,0.03,-1.8,0.61,-3.16,-2.23,-5.3,-3.0,-4.9,-8.44,-7.65,-9.4,-7.74,-7.07,-5.95,-3.71,-3.2,0.76,2.02,-2.06,-3.66,-4.68,-5.03,-4.98,-7.28,-8.24,-8.47,-7.78,-10.12,-9.94,-11.82,-9.95,-8.75,-6.67,-6.35,-5.64,-6.3,-7.99,-6.84,-8.72,-13.12,-10.1,-10.86],"HRTG":[0.0,0.78,1.57,-21.28,-20.24,-20.56,-11.58,-11.79,-14.58,-9.41,-12.31,-17.49,-19.59,-19.25,-20.9,-4.42,-3.01,-14.01,-15.05,-16.49,-14.22,-16.29,-18.52,-21.36,-13.61,-12.9,-11.4,-7.11,-6.49,-10.72,-10.61,-12.96,-10.39,-7.85,-9.16,-9.21,-9.14,-9.16,-9.14,-10.6,-11.26,-11.78,-12.96,-15.38,-11.84,-12.96,-17.33,-19.77,-15.37,-14.51,-16.22,-14.76,-16.43,-19.15,-21.86,-21.9,-21.0,-23.5,-19.35,-18.81,-21.25,-21.72,-20.08,-19.25,-22.8,-26.76,-24.27],"ACIC":[0.0,0.83,1.53,-13.11,-13.34,-16.08,-7.43,-3.68,-7.65,-4.12,-1.63,-4.35,-5.68,-6.82,-6.92,-7.15,14.74,10.35,9.52,6.99,10.24,11.7,12.42,9.53,15.78,17.14,11.36,14.79,16.61,17.18,14.76,12.73,14.08,14.97,14.66,13.64,15.56,16.19,16.57,15.59,16.59,16.56,14.29,12.69,19.84,19.76,18.19,17.63,17.11,18.01,16.26,16.27,16.54,15.6,14.56,11.89,11.62,10.12,10.39,13.64,12.42,12.51,14.03,12.32,7.55,5.11,6.93]},"mean":[0.0,0.29,0.64,-17.81,-16.28,-17.73,-7.47,-6.7,-7.48,-4.52,-4.72,-6.27,-6.9,-8.79,-10.08,-5.15,2.8,-3.24,-2.64,-3.83,-2.6,-3.1,-3.68,-5.91,-1.0,0.34,-1.1,1.62,2.17,1.32,-0.05,-0.6,0.16,-0.03,-0.42,-1.23,-0.07,0.48,0.89,0.45,0.73,1.29,0.47,-1.71,0.85,0.2,-1.99,-2.77,-3.06,-2.65,-3.99,-3.35,-4.53,-5.39,-7.07,-7.35,-7.03,-7.47,-6.23,-5.1,-6.55,-7.04,-5.35,-6.61,-10.74,-12.08,-10.95]}],"events":[{"storm":"Katrina","year":2005,"state":"LA","fl":false,"landfall_et":"2005-08-29 07:10","T0":"2005-08-29","T0_brief":"2005-08-29","kt":110,"cat":"Kat. 3","cluster":1,"period":"pre-2020","note":"first FL landfall 25 Aug (Cat 1)"},{"storm":"Ike","year":2008,"state":"TX","fl":false,"landfall_et":"2008-09-13 03:00","T0":"2008-09-15","T0_brief":"2008-09-15","kt":95,"cat":"Kat. 2","cluster":2,"period":"pre-2020","note":"T0 = Lehman day (15 Sep 2008)"},{"storm":"Irene","year":2011,"state":"NC","fl":false,"landfall_et":"2011-08-27 08:00","T0":"2011-08-29","T0_brief":"2011-08-29","kt":75,"cat":"Kat. 1","cluster":3,"period":"pre-2020","note":""},{"storm":"Sandy","year":2012,"state":"NJ","fl":false,"landfall_et":"2012-10-29 19:30","T0":"2012-10-31","T0_brief":"2012-10-31","kt":70,"cat":"post-trop.","cluster":4,"period":"pre-2020","note":"NYSE closed 29-30 Oct"},{"storm":"Harvey","year":2017,"state":"TX","fl":false,"landfall_et":"2017-08-25 23:00","T0":"2017-08-28","T0_brief":"2017-08-25","kt":115,"cat":"Kat. 4","cluster":5,"period":"pre-2020","note":""},{"storm":"Irma","year":2017,"state":"FL","fl":true,"landfall_et":"2017-09-10 09:00","T0":"2017-09-11","T0_brief":"2017-09-11","kt":115,"cat":"Kat. 4","cluster":5,"period":"pre-2020","note":""},{"storm":"Michael","year":2018,"state":"FL","fl":true,"landfall_et":"2018-10-10 13:30","T0":"2018-10-10","T0_brief":"2018-10-10","kt":140,"cat":"Kat. 5","cluster":6,"period":"pre-2020","note":"FL panhandle"},{"storm":"Hanna","year":2020,"state":"TX","fl":false,"landfall_et":"2020-07-25 18:00","T0":"2020-07-27","T0_brief":"2020-07-27","kt":80,"cat":"Kat. 1","cluster":7,"period":"2020-2024","note":""},{"storm":"Isaias","year":2020,"state":"NC","fl":false,"landfall_et":"2020-08-03 23:10","T0":"2020-08-04","T0_brief":"2020-08-04","kt":80,"cat":"Kat. 1","cluster":7,"period":"2020-2024","note":"landfall 23:10 ET 3 Aug"},{"storm":"Laura","year":2020,"state":"LA","fl":false,"landfall_et":"2020-08-27 02:00","T0":"2020-08-27","T0_brief":"2020-08-27","kt":130,"cat":"Kat. 4","cluster":7,"period":"2020-2024","note":""},{"storm":"Sally","year":2020,"state":"AL","fl":false,"landfall_et":"2020-09-16 05:45","T0":"2020-09-16","T0_brief":"2020-09-16","kt":95,"cat":"Kat. 2","cluster":7,"period":"2020-2024","note":""},{"storm":"Delta","year":2020,"state":"LA","fl":false,"landfall_et":"2020-10-09 19:00","T0":"2020-10-12","T0_brief":"2020-10-09","kt":85,"cat":"Kat. 2","cluster":7,"period":"2020-2024","note":"landfall Fri 19:00 ET"},{"storm":"Zeta","year":2020,"state":"LA","fl":false,"landfall_et":"2020-10-28 17:00","T0":"2020-10-29","T0_brief":"2020-10-28","kt":100,"cat":"Kat. 3","cluster":7,"period":"2020-2024","note":"landfall 17:00 ET"},{"storm":"Ida","year":2021,"state":"LA","fl":false,"landfall_et":"2021-08-29 12:55","T0":"2021-08-30","T0_brief":"2021-08-30","kt":130,"cat":"Kat. 4","cluster":8,"period":"2020-2024","note":""},{"storm":"Nicholas","year":2021,"state":"TX","fl":false,"landfall_et":"2021-09-14 01:30","T0":"2021-09-14","T0_brief":"2021-09-14","kt":65,"cat":"Kat. 1","cluster":8,"period":"2020-2024","note":""},{"storm":"Ian","year":2022,"state":"FL","fl":true,"landfall_et":"2022-09-28 15:05","T0":"2022-09-28","T0_brief":"2022-09-28","kt":130,"cat":"Kat. 4","cluster":9,"period":"2020-2024","note":"landfall 15:05 ET, before close; FedNat liquidated 27 Sep"},{"storm":"Nicole","year":2022,"state":"FL","fl":true,"landfall_et":"2022-11-10 02:45","T0":"2022-11-10","T0_brief":"2022-11-10","kt":65,"cat":"Kat. 1","cluster":10,"period":"2020-2024","note":""},{"storm":"Idalia","year":2023,"state":"FL","fl":true,"landfall_et":"2023-08-30 07:45","T0":"2023-08-30","T0_brief":"2023-08-30","kt":100,"cat":"Kat. 3","cluster":11,"period":"2020-2024","note":"after FL reform re-rating"},{"storm":"Beryl","year":2024,"state":"TX","fl":false,"landfall_et":"2024-07-08 04:40","T0":"2024-07-08","T0_brief":"2024-07-08","kt":80,"cat":"Kat. 1","cluster":12,"period":"2020-2024","note":""},{"storm":"Debby","year":2024,"state":"FL","fl":true,"landfall_et":"2024-08-05 07:00","T0":"2024-08-05","T0_brief":"2024-08-05","kt":70,"cat":"Kat. 1","cluster":12,"period":"2020-2024","note":"T0 = 5 Aug 2024 global sell-off (yen carry)"},{"storm":"Francine","year":2024,"state":"LA","fl":false,"landfall_et":"2024-09-11 18:00","T0":"2024-09-12","T0_brief":"2024-09-11","kt":90,"cat":"Kat. 2","cluster":13,"period":"2020-2024","note":"landfall 18:00 ET"},{"storm":"Helene","year":2024,"state":"FL","fl":true,"landfall_et":"2024-09-26 23:10","T0":"2024-09-27","T0_brief":"2024-09-26","kt":120,"cat":"Kat. 4","cluster":13,"period":"2020-2024","note":"landfall 23:10 ET 26 Sep"},{"storm":"Milton","year":2024,"state":"FL","fl":true,"landfall_et":"2024-10-09 20:30","T0":"2024-10-10","T0_brief":"2024-10-09","kt":100,"cat":"Kat. 3","cluster":13,"period":"2020-2024","note":"landfall 20:30 ET 9 Oct"}],"basket":[{"storm":"Ike","year":2008,"fl":false,"period":"pre-2020","pre":4.3,"d1":-1.0,"d5":-1.5,"d20":-14.3,"d60":9.3},{"storm":"Irene","year":2011,"fl":false,"period":"pre-2020","pre":-1.2,"d1":1.7,"d5":2.3,"d20":4.1,"d60":6.1},{"storm":"Sandy","year":2012,"fl":false,"period":"pre-2020","pre":-2.9,"d1":-3.0,"d5":-9.5,"d20":-2.5,"d60":-7.1},{"storm":"Harvey","year":2017,"fl":false,"period":"pre-2020","pre":-2.1,"d1":-0.7,"d5":-18.7,"d20":0.3,"d60":4.4},{"storm":"Irma","year":2017,"fl":true,"period":"pre-2020","pre":-15.6,"d1":15.8,"d5":18.2,"d20":24.1,"d60":24.8},{"storm":"Michael","year":2018,"fl":true,"period":"pre-2020","pre":1.1,"d1":-2.9,"d5":-3.9,"d20":0.6,"d60":-8.7},{"storm":"Hanna","year":2020,"fl":false,"period":"2020-2024","pre":-0.6,"d1":-1.2,"d5":-2.3,"d20":7.7,"d60":-19.9},{"storm":"Isaias","year":2020,"fl":false,"period":"2020-2024","pre":-0.4,"d1":3.4,"d5":20.1,"d20":5.8,"d60":-18.3},{"storm":"Laura","year":2020,"fl":false,"period":"2020-2024","pre":-7.0,"d1":1.2,"d5":0.8,"d20":-12.6,"d60":-19.2},{"storm":"Sally","year":2020,"fl":false,"period":"2020-2024","pre":-4.4,"d1":0.3,"d5":-7.8,"d20":-18.6,"d60":-15.5},{"storm":"Delta","year":2020,"fl":false,"period":"2020-2024","pre":-4.0,"d1":-3.5,"d5":-2.7,"d20":-6.1,"d60":10.3},{"storm":"Zeta","year":2020,"fl":false,"period":"2020-2024","pre":-5.6,"d1":1.0,"d5":-3.1,"d20":7.4,"d60":12.6},{"storm":"Ida","year":2021,"fl":false,"period":"2020-2024","pre":4.0,"d1":-0.8,"d5":-6.7,"d20":0.8,"d60":16.3},{"storm":"Nicholas","year":2021,"fl":false,"period":"2020-2024","pre":-3.3,"d1":-4.3,"d5":3.3,"d20":22.0,"d60":21.2},{"storm":"Ian","year":2022,"fl":true,"period":"2020-2024","pre":-16.4,"d1":2.5,"d5":1.1,"d20":-20.8,"d60":32.7},{"storm":"Nicole","year":2022,"fl":true,"period":"2020-2024","pre":-6.1,"d1":0.4,"d5":2.3,"d20":10.0,"d60":105.3},{"storm":"Idalia","year":2023,"fl":true,"period":"2020-2024","pre":-7.5,"d1":1.1,"d5":-6.4,"d20":4.6,"d60":14.0},{"storm":"Beryl","year":2024,"fl":false,"period":"2020-2024","pre":-9.9,"d1":2.0,"d5":5.9,"d20":7.2,"d60":10.0},{"storm":"Debby","year":2024,"fl":true,"period":"2020-2024","pre":-1.6,"d1":-1.3,"d5":6.2,"d20":16.8,"d60":4.4},{"storm":"Francine","year":2024,"fl":false,"period":"2020-2024","pre":-5.4,"d1":2.3,"d5":6.0,"d20":-11.2,"d60":-4.1},{"storm":"Helene","year":2024,"fl":true,"period":"2020-2024","pre":-1.4,"d1":-7.5,"d5":-7.9,"d20":-11.6,"d60":-15.4},{"storm":"Milton","year":2024,"fl":true,"period":"2020-2024","pre":-17.7,"d1":11.0,"d5":11.5,"d20":16.6,"d60":6.8}],"strat":[{"storm":"Ike","year":2008,"fl":false,"period":"pre-2020","n":1,"entry":"2008-09-12","ex5":-1.5,"ex20":-20.4,"ex5k":-7.9,"ex20k":-6.9},{"storm":"Irene","year":2011,"fl":false,"period":"pre-2020","n":2,"entry":"2011-08-26","ex5":1.4,"ex20":1.1,"ex5k":1.5,"ex20k":4.5},{"storm":"Sandy","year":2012,"fl":false,"period":"pre-2020","n":2,"entry":"2012-10-26","ex5":-4.3,"ex20":-0.3,"ex5k":-3.4,"ex20k":0.2},{"storm":"Harvey","year":2017,"fl":false,"period":"pre-2020","n":4,"entry":"2017-08-25","ex5":-4.6,"ex20":-1.3,"ex5k":-2.1,"ex20k":1.0},{"storm":"Irma","year":2017,"fl":true,"period":"pre-2020","n":4,"entry":"2017-09-08","ex5":22.1,"ex20":26.6,"ex5k":20.6,"ex20k":24.2},{"storm":"Michael","year":2018,"fl":true,"period":"pre-2020","n":4,"entry":"2018-10-09","ex5":-2.5,"ex20":2.2,"ex5k":0.8,"ex20k":2.5},{"storm":"Hanna","year":2020,"fl":false,"period":"2020-2024","n":4,"entry":"2020-07-24","ex5":-3.3,"ex20":5.4,"ex5k":-0.2,"ex20k":11.4},{"storm":"Isaias","year":2020,"fl":false,"period":"2020-2024","n":4,"entry":"2020-08-03","ex5":19.6,"ex20":3.0,"ex5k":16.4,"ex20k":6.6},{"storm":"Laura","year":2020,"fl":false,"period":"2020-2024","n":4,"entry":"2020-08-26","ex5":-2.2,"ex20":-10.2,"ex5k":-2.0,"ex20k":-9.8},{"storm":"Sally","year":2020,"fl":false,"period":"2020-2024","n":4,"entry":"2020-09-15","ex5":-5.1,"ex20":-21.1,"ex5k":-4.3,"ex20k":-20.9},{"storm":"Delta","year":2020,"fl":false,"period":"2020-2024","n":4,"entry":"2020-10-09","ex5":-1.8,"ex20":-12.5,"ex5k":-1.1,"ex20k":-11.2},{"storm":"Zeta","year":2020,"fl":false,"period":"2020-2024","n":4,"entry":"2020-10-28","ex5":-1.8,"ex20":3.8,"ex5k":-0.8,"ex20k":-4.7},{"storm":"Ida","year":2021,"fl":false,"period":"2020-2024","n":4,"entry":"2021-08-27","ex5":-4.8,"ex20":-1.3,"ex5k":-3.1,"ex20k":-0.3},{"storm":"Nicholas","year":2021,"fl":false,"period":"2020-2024","n":4,"entry":"2021-09-13","ex5":2.1,"ex20":21.0,"ex5k":3.3,"ex20k":15.8},{"storm":"Ian","year":2022,"fl":true,"period":"2020-2024","n":4,"entry":"2022-09-27","ex5":2.8,"ex20":-27.9,"ex5k":-0.6,"ex20k":-31.4},{"storm":"Nicole","year":2022,"fl":true,"period":"2020-2024","n":4,"entry":"2022-11-09","ex5":-2.1,"ex20":1.9,"ex5k":2.1,"ex20k":4.5},{"storm":"Idalia","year":2023,"fl":true,"period":"2020-2024","n":4,"entry":"2023-08-29","ex5":-4.9,"ex20":19.1,"ex5k":-5.3,"ex20k":12.8},{"storm":"Beryl","year":2024,"fl":false,"period":"2020-2024","n":4,"entry":"2024-07-05","ex5":5.6,"ex20":16.0,"ex5k":2.7,"ex20k":4.7},{"storm":"Debby","year":2024,"fl":true,"period":"2020-2024","n":4,"entry":"2024-08-02","ex5":9.7,"ex20":26.9,"ex5k":10.5,"ex20k":26.2},{"storm":"Francine","year":2024,"fl":false,"period":"2020-2024","n":4,"entry":"2024-09-11","ex5":7.8,"ex20":-19.5,"ex5k":5.5,"ex20k":-19.6},{"storm":"Helene","year":2024,"fl":true,"period":"2020-2024","n":4,"entry":"2024-09-26","ex5":-6.6,"ex20":-4.6,"ex5k":-7.5,"ex20k":-5.4},{"storm":"Milton","year":2024,"fl":true,"period":"2020-2024","n":4,"entry":"2024-10-09","ex5":14.4,"ex20":23.1,"ex5k":13.1,"ex20k":22.6}],"strat_sum":[{"run":"base (T0 = first close after landfall)","subset":"2020-24 all","hold":5,"n":16,"mean":1.8,"median":-1.8,"hit":44.0,"worst":-6.6,"lo":-0.9,"hi":4.5},{"run":"base (T0 = first close after landfall)","subset":"2020-24 all","hold":20,"n":16,"mean":1.5,"median":2.5,"hit":56.0,"worst":-27.9,"lo":-5.7,"hi":12.5},{"run":"base (T0 = first close after landfall)","subset":"2020-24 FL landfall","hold":5,"n":6,"mean":2.2,"median":0.4,"hit":50.0,"worst":-6.6,"lo":-2.3,"hi":5.9},{"run":"base (T0 = first close after landfall)","subset":"2020-24 FL landfall","hold":20,"n":6,"mean":6.4,"median":10.5,"hit":67.0,"worst":-27.9,"lo":-10.5,"hi":19.7},{"run":"base (T0 = first close after landfall)","subset":"pre-2020 FL landfall","hold":5,"n":2,"mean":9.8,"median":9.8,"hit":50.0,"worst":-2.5,"lo":-2.5,"hi":22.1},{"run":"base (T0 = first close after landfall)","subset":"pre-2020 FL landfall","hold":20,"n":2,"mean":14.4,"median":14.4,"hit":100.0,"worst":2.2,"lo":2.2,"hi":26.6},{"run":"brief date convention","subset":"2020-24 all","hold":5,"n":16,"mean":1.4,"median":-1.9,"hit":44.0,"worst":-6.0,"lo":-0.9,"hi":3.9},{"run":"brief date convention","subset":"2020-24 all","hold":20,"n":16,"mean":0.6,"median":1.4,"hit":56.0,"worst":-27.9,"lo":-6.3,"hi":12.1},{"run":"brief date convention","subset":"2020-24 FL landfall","hold":5,"n":6,"mean":2.1,"median":0.4,"hit":50.0,"worst":-6.0,"lo":-2.3,"hi":5.6},{"run":"brief date convention","subset":"2020-24 FL landfall","hold":20,"n":6,"mean":4.8,"median":10.5,"hit":67.0,"worst":-27.9,"lo":-11.0,"hi":18.8},{"run":"brief date convention","subset":"pre-2020 FL landfall","hold":5,"n":2,"mean":9.8,"median":9.8,"hit":50.0,"worst":-2.5,"lo":-2.5,"hi":22.1},{"run":"brief date convention","subset":"pre-2020 FL landfall","hold":20,"n":2,"mean":14.4,"median":14.4,"hit":100.0,"worst":2.2,"lo":2.2,"hi":26.6},{"run":"Ian + FNHC at -100%","subset":"2020-24 all","hold":5,"n":16,"mean":0.5,"median":-2.0,"hit":38.0,"worst":-18.6,"lo":-5.0,"hi":3.8},{"run":"Ian + FNHC at -100%","subset":"2020-24 all","hold":20,"n":16,"mean":0.5,"median":2.5,"hit":56.0,"worst":-43.5,"lo":-8.6,"hi":12.0},{"run":"Ian + FNHC at -100%","subset":"2020-24 FL landfall","hold":5,"n":6,"mean":-1.4,"median":-3.5,"hit":33.0,"worst":-18.6,"lo":-10.2,"hi":4.7},{"run":"Ian + FNHC at -100%","subset":"2020-24 FL landfall","hold":20,"n":6,"mean":3.8,"median":10.5,"hit":67.0,"worst":-43.5,"lo":-18.3,"hi":18.8},{"run":"Ian + FNHC at -100%","subset":"pre-2020 FL landfall","hold":5,"n":2,"mean":9.8,"median":9.8,"hit":50.0,"worst":-2.5,"lo":-2.5,"hi":22.1},{"run":"Ian + FNHC at -100%","subset":"pre-2020 FL landfall","hold":20,"n":2,"mean":14.4,"median":14.4,"hit":100.0,"worst":2.2,"lo":2.2,"hi":26.6},{"run":"Ian + FNHC at -50%","subset":"2020-24 all","hold":5,"n":16,"mean":1.1,"median":-2.0,"hit":38.0,"worst":-8.6,"lo":-2.5,"hi":3.9},{"run":"Ian + FNHC at -50%","subset":"2020-24 all","hold":20,"n":16,"mean":1.1,"median":2.5,"hit":56.0,"worst":-33.5,"lo":-6.7,"hi":12.4},{"run":"Ian + FNHC at -50%","subset":"2020-24 FL landfall","hold":5,"n":6,"mean":0.3,"median":-3.5,"hit":33.0,"worst":-8.6,"lo":-5.8,"hi":5.3},{"run":"Ian + FNHC at -50%","subset":"2020-24 FL landfall","hold":20,"n":6,"mean":5.5,"median":10.5,"hit":67.0,"worst":-33.5,"lo":-13.3,"hi":18.8},{"run":"Ian + FNHC at -50%","subset":"pre-2020 FL landfall","hold":5,"n":2,"mean":9.8,"median":9.8,"hit":50.0,"worst":-2.5,"lo":-2.5,"hi":22.1},{"run":"Ian + FNHC at -50%","subset":"pre-2020 FL landfall","hold":20,"n":2,"mean":14.4,"median":14.4,"hit":100.0,"worst":2.2,"lo":2.2,"hi":26.6},{"run":"base, non-overlapping trades only","subset":"2020-24 all","hold":5,"n":16,"mean":1.8,"median":-1.8,"hit":44.0,"worst":-6.6,"lo":-0.7,"hi":4.6},{"run":"base, non-overlapping trades only","subset":"2020-24 all","hold":20,"n":11,"mean":1.9,"median":1.9,"hit":55.0,"worst":-27.9,"lo":-8.0,"hi":12.8},{"run":"base, non-overlapping trades only","subset":"2020-24 FL landfall","hold":5,"n":6,"mean":2.2,"median":0.4,"hit":50.0,"worst":-6.6,"lo":-2.3,"hi":5.8},{"run":"base, non-overlapping trades only","subset":"2020-24 FL landfall","hold":20,"n":5,"mean":8.6,"median":19.1,"hit":80.0,"worst":-27.9,"lo":-10.0,"hi":23.8},{"run":"base, non-overlapping trades only","subset":"pre-2020 FL landfall","hold":5,"n":2,"mean":9.8,"median":9.8,"hit":50.0,"worst":-2.5,"lo":-2.5,"hi":22.1},{"run":"base, non-overlapping trades only","subset":"pre-2020 FL landfall","hold":20,"n":1,"mean":2.2,"median":2.2,"hit":100.0,"worst":2.2,"lo":2.2,"hi":2.2}],"grp_sum":[{"subset":"2020-24 all","group":"FL","measure":"CARpre[-5,-1]_SPY","n":16,"clusters":7,"mean":-5.5,"lo":-9.1,"hi":-3.3,"t":-3.84,"hit":6.0},{"subset":"2020-24 all","group":"FL","measure":"CAR[0,+1]_SPY","n":16,"clusters":7,"mean":0.4,"lo":-0.7,"hi":1.6,"t":0.79,"hit":62.0},{"subset":"2020-24 all","group":"FL","measure":"CAR[0,+5]_SPY","n":16,"clusters":7,"mean":1.2,"lo":-1.0,"hi":3.3,"t":1.23,"hit":56.0},{"subset":"2020-24 all","group":"FL","measure":"CAR[0,+20]_SPY","n":16,"clusters":7,"mean":1.1,"lo":-3.8,"hi":8.4,"t":0.36,"hit":62.0},{"subset":"2020-24 all","group":"FL","measure":"CAR[0,+60]_SPY","n":16,"clusters":7,"mean":8.8,"lo":-3.4,"hi":38.0,"t":0.87,"hit":62.0},{"subset":"2020-24 all","group":"FL","measure":"reversal+5_SPY","n":11,"clusters":7,"mean":-0.0,"lo":-51.2,"hi":72.0,"t":-0.0,"hit":64.0},{"subset":"2020-24 all","group":"FL","measure":"reversal+20_SPY","n":11,"clusters":7,"mean":8.4,"lo":-111.0,"hi":259.2,"t":0.09,"hit":55.0},{"subset":"2020-24 all","group":"FL","measure":"dlogvol_post","n":16,"clusters":7,"mean":19.7,"lo":3.6,"hi":44.4,"t":1.64,"hit":75.0},{"subset":"2020-24 all","group":"FL","measure":"dlogvol_late","n":16,"clusters":7,"mean":7.8,"lo":-5.9,"hi":33.6,"t":0.79,"hit":69.0},{"subset":"2020-24 all","group":"FL","measure":"dlogidio_post","n":16,"clusters":7,"mean":22.6,"lo":6.4,"hi":45.4,"t":2.07,"hit":81.0},{"subset":"2020-24 all","group":"FL","measure":"dlogidio_late","n":16,"clusters":7,"mean":9.4,"lo":-4.3,"hi":32.8,"t":1.03,"hit":62.0},{"subset":"2020-24 all","group":"National","measure":"CARpre[-5,-1]_SPY","n":16,"clusters":7,"mean":-0.7,"lo":-1.8,"hi":-0.1,"t":-1.51,"hit":38.0},{"subset":"2020-24 all","group":"National","measure":"CAR[0,+1]_SPY","n":16,"clusters":7,"mean":-0.4,"lo":-1.4,"hi":0.4,"t":-0.99,"hit":44.0},{"subset":"2020-24 all","group":"National","measure":"CAR[0,+5]_SPY","n":16,"clusters":7,"mean":0.3,"lo":-0.9,"hi":1.8,"t":0.42,"hit":50.0},{"subset":"2020-24 all","group":"National","measure":"CAR[0,+20]_SPY","n":16,"clusters":7,"mean":0.1,"lo":-1.7,"hi":3.0,"t":0.08,"hit":44.0},{"subset":"2020-24 all","group":"National","measure":"CAR[0,+60]_SPY","n":16,"clusters":7,"mean":1.2,"lo":-6.2,"hi":7.1,"t":0.33,"hit":50.0},{"subset":"2020-24 all","group":"National","measure":"reversal+5_SPY","n":5,"clusters":4,"mean":103.3,"lo":84.5,"hi":117.4,"t":11.47,"hit":100.0},{"subset":"2020-24 all","group":"National","measure":"reversal+20_SPY","n":5,"clusters":4,"mean":41.6,"lo":-50.1,"hi":150.6,"t":0.62,"hit":60.0},{"subset":"2020-24 all","group":"National","measure":"dlogvol_post","n":16,"clusters":7,"mean":-15.0,"lo":-30.0,"hi":2.2,"t":-1.97,"hit":31.0},{"subset":"2020-24 all","group":"National","measure":"dlogvol_late","n":16,"clusters":7,"mean":-12.8,"lo":-17.7,"hi":-4.4,"t":-3.73,"hit":25.0},{"subset":"2020-24 all","group":"National","measure":"dlogidio_post","n":16,"clusters":7,"mean":-7.9,"lo":-31.0,"hi":4.9,"t":-0.9,"hit":38.0},{"subset":"2020-24 all","group":"National","measure":"dlogidio_late","n":16,"clusters":7,"mean":-4.9,"lo":-15.9,"hi":4.8,"t":-0.93,"hit":38.0},{"subset":"2020-24 all","group":"Reinsurer","measure":"CARpre[-5,-1]_SPY","n":16,"clusters":7,"mean":-0.7,"lo":-1.6,"hi":0.5,"t":-1.65,"hit":50.0},{"subset":"2020-24 all","group":"Reinsurer","measure":"CAR[0,+1]_SPY","n":16,"clusters":7,"mean":-0.2,"lo":-1.8,"hi":1.3,"t":-0.32,"hit":56.0},{"subset":"2020-24 all","group":"Reinsurer","measure":"CAR[0,+5]_SPY","n":16,"clusters":7,"mean":0.3,"lo":-1.2,"hi":1.7,"t":0.38,"hit":56.0},{"subset":"2020-24 all","group":"Reinsurer","measure":"CAR[0,+20]_SPY","n":16,"clusters":7,"mean":0.6,"lo":-1.0,"hi":3.6,"t":0.54,"hit":50.0},{"subset":"2020-24 all","group":"Reinsurer","measure":"CAR[0,+60]_SPY","n":16,"clusters":7,"mean":2.3,"lo":-2.5,"hi":10.3,"t":0.75,"hit":62.0},{"subset":"2020-24 all","group":"Reinsurer","measure":"reversal+5_SPY","n":5,"clusters":5,"mean":7.3,"lo":-126.6,"hi":103.0,"t":0.11,"hit":80.0},{"subset":"2020-24 all","group":"Reinsurer","measure":"reversal+20_SPY","n":5,"clusters":5,"mean":28.8,"lo":-94.4,"hi":141.6,"t":0.43,"hit":60.0},{"subset":"2020-24 all","group":"Reinsurer","measure":"dlogvol_post","n":16,"clusters":7,"mean":-0.9,"lo":-18.3,"hi":26.5,"t":-0.07,"hit":44.0},{"subset":"2020-24 all","group":"Reinsurer","measure":"dlogvol_late","n":16,"clusters":7,"mean":1.8,"lo":-8.6,"hi":17.9,"t":0.25,"hit":62.0},{"subset":"2020-24 all","group":"Reinsurer","measure":"dlogidio_post","n":16,"clusters":7,"mean":2.0,"lo":-13.2,"hi":26.1,"t":0.18,"hit":44.0},{"subset":"2020-24 all","group":"Reinsurer","measure":"dlogidio_late","n":16,"clusters":7,"mean":5.3,"lo":-5.5,"hi":23.3,"t":0.69,"hit":69.0},{"subset":"2020-24 FL landfall","group":"FL","measure":"CARpre[-5,-1]_SPY","n":6,"clusters":5,"mean":-8.4,"lo":-12.5,"hi":-4.6,"t":-4.12,"hit":0.0},{"subset":"2020-24 FL landfall","group":"FL","measure":"CAR[0,+1]_SPY","n":6,"clusters":5,"mean":1.1,"lo":-0.2,"hi":1.9,"t":1.76,"hit":67.0},{"subset":"2020-24 FL landfall","group":"FL","measure":"CAR[0,+5]_SPY","n":6,"clusters":5,"mean":1.1,"lo":-2.4,"hi":4.1,"t":0.64,"hit":67.0},{"subset":"2020-24 FL landfall","group":"FL","measure":"CAR[0,+20]_SPY","n":6,"clusters":5,"mean":2.6,"lo":-8.5,"hi":11.6,"t":0.49,"hit":67.0},{"subset":"2020-24 FL landfall","group":"FL","measure":"CAR[0,+60]_SPY","n":6,"clusters":5,"mean":24.6,"lo":0.8,"hi":68.8,"t":1.29,"hit":83.0},{"subset":"2020-24 FL landfall","group":"FL","measure":"reversal+5_SPY","n":4,"clusters":4,"mean":5.6,"lo":-55.3,"hi":50.9,"t":0.17,"hit":75.0},{"subset":"2020-24 FL landfall","group":"FL","measure":"reversal+20_SPY","n":4,"clusters":4,"mean":48.5,"lo":-71.9,"hi":139.5,"t":0.78,"hit":75.0},{"subset":"2020-24 FL landfall","group":"FL","measure":"dlogvol_post","n":6,"clusters":5,"mean":31.3,"lo":3.2,"hi":52.6,"t":2.2,"hit":83.0},{"subset":"2020-24 FL landfall","group":"FL","measure":"dlogvol_late","n":6,"clusters":5,"mean":13.3,"lo":-16.6,"hi":54.3,"t":0.64,"hit":67.0},{"subset":"2020-24 FL landfall","group":"FL","measure":"dlogidio_post","n":6,"clusters":5,"mean":29.6,"lo":-0.6,"hi":54.3,"t":1.8,"hit":83.0},{"subset":"2020-24 FL landfall","group":"FL","measure":"dlogidio_late","n":6,"clusters":5,"mean":12.3,"lo":-18.6,"hi":51.6,"t":0.59,"hit":67.0},{"subset":"2020-24 FL landfall","group":"National","measure":"CARpre[-5,-1]_SPY","n":6,"clusters":5,"mean":-1.0,"lo":-2.2,"hi":0.6,"t":-1.24,"hit":33.0},{"subset":"2020-24 FL landfall","group":"National","measure":"CAR[0,+1]_SPY","n":6,"clusters":5,"mean":-0.6,"lo":-2.4,"hi":0.8,"t":-0.62,"hit":50.0},{"subset":"2020-24 FL landfall","group":"National","measure":"CAR[0,+5]_SPY","n":6,"clusters":5,"mean":1.1,"lo":-1.1,"hi":2.8,"t":1.05,"hit":50.0},{"subset":"2020-24 FL landfall","group":"National","measure":"CAR[0,+20]_SPY","n":6,"clusters":5,"mean":1.9,"lo":-1.3,"hi":6.4,"t":0.83,"hit":50.0},{"subset":"2020-24 FL landfall","group":"National","measure":"CAR[0,+60]_SPY","n":6,"clusters":5,"mean":-0.3,"lo":-8.1,"hi":11.9,"t":-0.05,"hit":33.0},{"subset":"2020-24 FL landfall","group":"National","measure":"reversal+5_SPY","n":2,"clusters":2,"mean":144.8,"lo":123.4,"hi":166.2,"t":6.76,"hit":100.0},{"subset":"2020-24 FL landfall","group":"National","measure":"reversal+20_SPY","n":2,"clusters":2,"mean":64.9,"lo":-35.6,"hi":165.3,"t":0.65,"hit":50.0},{"subset":"2020-24 FL landfall","group":"National","measure":"dlogvol_post","n":6,"clusters":5,"mean":-8.4,"lo":-34.8,"hi":16.2,"t":-0.63,"hit":33.0},{"subset":"2020-24 FL landfall","group":"National","measure":"dlogvol_late","n":6,"clusters":5,"mean":-13.0,"lo":-23.2,"hi":1.9,"t":-1.83,"hit":17.0},{"subset":"2020-24 FL landfall","group":"National","measure":"dlogidio_post","n":6,"clusters":5,"mean":-7.5,"lo":-34.0,"hi":12.4,"t":-0.62,"hit":50.0},{"subset":"2020-24 FL landfall","group":"National","measure":"dlogidio_late","n":6,"clusters":5,"mean":-10.3,"lo":-25.6,"hi":11.2,"t":-0.97,"hit":33.0},{"subset":"2020-24 FL landfall","group":"Reinsurer","measure":"CARpre[-5,-1]_SPY","n":6,"clusters":5,"mean":0.5,"lo":-1.2,"hi":2.3,"t":0.53,"hit":67.0},{"subset":"2020-24 FL landfall","group":"Reinsurer","measure":"CAR[0,+1]_SPY","n":6,"clusters":5,"mean":-0.2,"lo":-3.6,"hi":2.9,"t":-0.09,"hit":67.0},{"subset":"2020-24 FL landfall","group":"Reinsurer","measure":"CAR[0,+5]_SPY","n":6,"clusters":5,"mean":0.6,"lo":-2.1,"hi":2.8,"t":0.47,"hit":50.0},{"subset":"2020-24 FL landfall","group":"Reinsurer","measure":"CAR[0,+20]_SPY","n":6,"clusters":5,"mean":1.1,"lo":-3.8,"hi":7.0,"t":0.34,"hit":50.0},{"subset":"2020-24 FL landfall","group":"Reinsurer","measure":"CAR[0,+60]_SPY","n":6,"clusters":5,"mean":2.2,"lo":-8.1,"hi":17.4,"t":0.31,"hit":67.0},{"subset":"2020-24 FL landfall","group":"Reinsurer","measure":"reversal+5_SPY","n":1,"clusters":1,"mean":145.7,"lo":145.7,"hi":145.7,"t":null,"hit":100.0},{"subset":"2020-24 FL landfall","group":"Reinsurer","measure":"reversal+20_SPY","n":1,"clusters":1,"mean":193.3,"lo":193.3,"hi":193.3,"t":null,"hit":100.0},{"subset":"2020-24 FL landfall","group":"Reinsurer","measure":"dlogvol_post","n":6,"clusters":5,"mean":10.7,"lo":-26.1,"hi":37.1,"t":0.59,"hit":50.0},{"subset":"2020-24 FL landfall","group":"Reinsurer","measure":"dlogvol_late","n":6,"clusters":5,"mean":14.0,"lo":-9.2,"hi":34.9,"t":1.21,"hit":67.0},{"subset":"2020-24 FL landfall","group":"Reinsurer","measure":"dlogidio_post","n":6,"clusters":5,"mean":8.9,"lo":-24.9,"hi":34.1,"t":0.5,"hit":50.0},{"subset":"2020-24 FL landfall","group":"Reinsurer","measure":"dlogidio_late","n":6,"clusters":5,"mean":18.3,"lo":1.7,"hi":37.0,"t":1.97,"hit":67.0},{"subset":"2020-24 non-FL landfall","group":"FL","measure":"CARpre[-5,-1]_SPY","n":10,"clusters":4,"mean":-3.7,"lo":-7.7,"hi":-1.1,"t":-3.07,"hit":10.0},{"subset":"2020-24 non-FL landfall","group":"FL","measure":"CAR[0,+1]_SPY","n":10,"clusters":4,"mean":0.0,"lo":-1.9,"hi":2.2,"t":0.06,"hit":60.0},{"subset":"2020-24 non-FL landfall","group":"FL","measure":"CAR[0,+5]_SPY","n":10,"clusters":4,"mean":1.3,"lo":-0.6,"hi":5.9,"t":1.22,"hit":50.0},{"subset":"2020-24 non-FL landfall","group":"FL","measure":"CAR[0,+20]_SPY","n":10,"clusters":4,"mean":0.2,"lo":-5.6,"hi":10.0,"t":0.06,"hit":60.0},{"subset":"2020-24 non-FL landfall","group":"FL","measure":"CAR[0,+60]_SPY","n":10,"clusters":4,"mean":-0.7,"lo":-7.7,"hi":15.8,"t":-0.09,"hit":50.0},{"subset":"2020-24 non-FL landfall","group":"FL","measure":"reversal+5_SPY","n":7,"clusters":4,"mean":-3.3,"lo":-59.7,"hi":105.1,"t":-0.06,"hit":57.0},{"subset":"2020-24 non-FL landfall","group":"FL","measure":"reversal+20_SPY","n":7,"clusters":4,"mean":-14.6,"lo":-167.1,"hi":444.1,"t":-0.1,"hit":43.0},{"subset":"2020-24 non-FL landfall","group":"FL","measure":"dlogvol_post","n":10,"clusters":4,"mean":12.8,"lo":1.0,"hi":48.8,"t":1.16,"hit":70.0},{"subset":"2020-24 non-FL landfall","group":"FL","measure":"dlogvol_late","n":10,"clusters":4,"mean":4.5,"lo":-4.9,"hi":29.0,"t":0.47,"hit":70.0},{"subset":"2020-24 non-FL landfall","group":"FL","measure":"dlogidio_post","n":10,"clusters":4,"mean":18.5,"lo":7.5,"hi":46.6,"t":2.01,"hit":80.0},{"subset":"2020-24 non-FL landfall","group":"FL","measure":"dlogidio_late","n":10,"clusters":4,"mean":7.6,"lo":-0.1,"hi":31.0,"t":0.89,"hit":60.0},{"subset":"2020-24 non-FL landfall","group":"National","measure":"CARpre[-5,-1]_SPY","n":10,"clusters":4,"mean":-0.6,"lo":-2.7,"hi":-0.1,"t":-1.09,"hit":40.0},{"subset":"2020-24 non-FL landfall","group":"National","measure":"CAR[0,+1]_SPY","n":10,"clusters":4,"mean":-0.3,"lo":-0.9,"hi":0.8,"t":-0.97,"hit":40.0},{"subset":"2020-24 non-FL landfall","group":"National","measure":"CAR[0,+5]_SPY","n":10,"clusters":4,"mean":-0.2,"lo":-1.7,"hi":2.2,"t":-0.36,"hit":50.0},{"subset":"2020-24 non-FL landfall","group":"National","measure":"CAR[0,+20]_SPY","n":10,"clusters":4,"mean":-1.0,"lo":-3.2,"hi":0.4,"t":-1.27,"hit":40.0},{"subset":"2020-24 non-FL landfall","group":"National","measure":"CAR[0,+60]_SPY","n":10,"clusters":4,"mean":2.1,"lo":-8.4,"hi":6.5,"t":0.48,"hit":60.0},{"subset":"2020-24 non-FL landfall","group":"National","measure":"reversal+5_SPY","n":3,"clusters":3,"mean":75.6,"lo":50.3,"hi":105.0,"t":4.74,"hit":100.0},{"subset":"2020-24 non-FL landfall","group":"National","measure":"reversal+20_SPY","n":3,"clusters":3,"mean":26.1,"lo":-126.5,"hi":135.8,"t":0.33,"hit":67.0},{"subset":"2020-24 non-FL landfall","group":"National","measure":"dlogvol_post","n":10,"clusters":4,"mean":-19.0,"lo":-34.0,"hi":7.1,"t":-2.38,"hit":30.0},{"subset":"2020-24 non-FL landfall","group":"National","measure":"dlogvol_late","n":10,"clusters":4,"mean":-12.7,"lo":-20.2,"hi":0.4,"t":-2.46,"hit":30.0},{"subset":"2020-24 non-FL landfall","group":"National","measure":"dlogidio_post","n":10,"clusters":4,"mean":-8.1,"lo":-41.3,"hi":9.7,"t":-0.62,"hit":30.0},{"subset":"2020-24 non-FL landfall","group":"National","measure":"dlogidio_late","n":10,"clusters":4,"mean":-1.7,"lo":-18.8,"hi":8.1,"t":-0.35,"hit":40.0},{"subset":"2020-24 non-FL landfall","group":"Reinsurer","measure":"CARpre[-5,-1]_SPY","n":10,"clusters":4,"mean":-1.5,"lo":-4.3,"hi":-0.8,"t":-2.14,"hit":40.0},{"subset":"2020-24 non-FL landfall","group":"Reinsurer","measure":"CAR[0,+1]_SPY","n":10,"clusters":4,"mean":-0.3,"lo":-1.2,"hi":1.5,"t":-0.6,"hit":50.0},{"subset":"2020-24 non-FL landfall","group":"Reinsurer","measure":"CAR[0,+5]_SPY","n":10,"clusters":4,"mean":0.1,"lo":-1.9,"hi":2.8,"t":0.07,"hit":60.0},{"subset":"2020-24 non-FL landfall","group":"Reinsurer","measure":"CAR[0,+20]_SPY","n":10,"clusters":4,"mean":0.3,"lo":-0.5,"hi":2.9,"t":0.36,"hit":50.0},{"subset":"2020-24 non-FL landfall","group":"Reinsurer","measure":"CAR[0,+60]_SPY","n":10,"clusters":4,"mean":2.4,"lo":-0.1,"hi":8.1,"t":1.17,"hit":60.0},{"subset":"2020-24 non-FL landfall","group":"Reinsurer","measure":"reversal+5_SPY","n":4,"clusters":4,"mean":-27.3,"lo":-176.9,"hi":62.0,"t":-0.36,"hit":75.0},{"subset":"2020-24 non-FL landfall","group":"Reinsurer","measure":"reversal+20_SPY","n":4,"clusters":4,"mean":-12.3,"lo":-144.4,"hi":99.5,"t":-0.18,"hit":50.0},{"subset":"2020-24 non-FL landfall","group":"Reinsurer","measure":"dlogvol_post","n":10,"clusters":4,"mean":-7.9,"lo":-18.5,"hi":34.9,"t":-0.76,"hit":40.0},{"subset":"2020-24 non-FL landfall","group":"Reinsurer","measure":"dlogvol_late","n":10,"clusters":4,"mean":-5.5,"lo":-13.7,"hi":12.5,"t":-0.82,"hit":60.0},{"subset":"2020-24 non-FL landfall","group":"Reinsurer","measure":"dlogidio_post","n":10,"clusters":4,"mean":-2.2,"lo":-10.9,"hi":33.0,"t":-0.24,"hit":40.0},{"subset":"2020-24 non-FL landfall","group":"Reinsurer","measure":"dlogidio_late","n":10,"clusters":4,"mean":-2.4,"lo":-14.7,"hi":20.6,"t":-0.27,"hit":70.0},{"subset":"pre-2020 all","group":"FL","measure":"CARpre[-5,-1]_SPY","n":6,"clusters":5,"mean":-2.7,"lo":-6.6,"hi":2.1,"t":-1.0,"hit":33.0},{"subset":"pre-2020 all","group":"FL","measure":"CAR[0,+1]_SPY","n":6,"clusters":5,"mean":1.6,"lo":-2.5,"hi":5.5,"t":0.63,"hit":33.0},{"subset":"pre-2020 all","group":"FL","measure":"CAR[0,+5]_SPY","n":6,"clusters":5,"mean":-2.2,"lo":-6.0,"hi":0.4,"t":-1.23,"hit":33.0},{"subset":"pre-2020 all","group":"FL","measure":"CAR[0,+20]_SPY","n":6,"clusters":5,"mean":2.1,"lo":-8.2,"hi":9.3,"t":0.42,"hit":67.0},{"subset":"pre-2020 all","group":"FL","measure":"CAR[0,+60]_SPY","n":6,"clusters":5,"mean":4.8,"lo":-5.1,"hi":11.9,"t":0.95,"hit":67.0},{"subset":"pre-2020 all","group":"FL","measure":"reversal+5_SPY","n":3,"clusters":2,"mean":-369.6,"lo":-388.8,"hi":-331.1,"t":-14.41,"hit":33.0},{"subset":"pre-2020 all","group":"FL","measure":"reversal+20_SPY","n":3,"clusters":2,"mean":27.5,"lo":-87.5,"hi":84.9,"t":0.36,"hit":67.0},{"subset":"pre-2020 all","group":"FL","measure":"dlogvol_post","n":6,"clusters":5,"mean":70.7,"lo":24.0,"hi":107.9,"t":3.14,"hit":100.0},{"subset":"pre-2020 all","group":"FL","measure":"dlogvol_late","n":6,"clusters":5,"mean":20.7,"lo":-1.0,"hi":55.5,"t":1.25,"hit":67.0},{"subset":"pre-2020 all","group":"FL","measure":"dlogidio_post","n":6,"clusters":5,"mean":63.5,"lo":16.4,"hi":98.9,"t":2.85,"hit":100.0},{"subset":"pre-2020 all","group":"FL","measure":"dlogidio_late","n":6,"clusters":5,"mean":17.5,"lo":-1.0,"hi":50.2,"t":1.17,"hit":67.0},{"subset":"pre-2020 all","group":"National","measure":"CARpre[-5,-1]_SPY","n":7,"clusters":6,"mean":-0.7,"lo":-1.9,"hi":1.0,"t":-0.92,"hit":29.0},{"subset":"pre-2020 all","group":"National","measure":"CAR[0,+1]_SPY","n":7,"clusters":6,"mean":0.3,"lo":-1.8,"hi":3.0,"t":0.19,"hit":43.0},{"subset":"pre-2020 all","group":"National","measure":"CAR[0,+5]_SPY","n":7,"clusters":6,"mean":-1.1,"lo":-3.5,"hi":2.9,"t":-0.65,"hit":29.0},{"subset":"pre-2020 all","group":"National","measure":"CAR[0,+20]_SPY","n":7,"clusters":6,"mean":-0.1,"lo":-1.0,"hi":1.7,"t":-0.12,"hit":29.0},{"subset":"pre-2020 all","group":"National","measure":"CAR[0,+60]_SPY","n":7,"clusters":6,"mean":4.4,"lo":-0.4,"hi":11.2,"t":1.36,"hit":71.0},{"subset":"pre-2020 all","group":"National","measure":"reversal+5_SPY","n":1,"clusters":1,"mean":34.2,"lo":34.2,"hi":34.2,"t":null,"hit":100.0},{"subset":"pre-2020 all","group":"National","measure":"reversal+20_SPY","n":1,"clusters":1,"mean":-1.0,"lo":-1.0,"hi":-1.0,"t":null,"hit":0.0},{"subset":"pre-2020 all","group":"National","measure":"dlogvol_post","n":7,"clusters":6,"mean":64.4,"lo":43.4,"hi":89.5,"t":5.04,"hit":100.0},{"subset":"pre-2020 all","group":"National","measure":"dlogvol_late","n":7,"clusters":6,"mean":48.2,"lo":24.3,"hi":82.3,"t":2.92,"hit":100.0},{"subset":"pre-2020 all","group":"National","measure":"dlogidio_post","n":7,"clusters":6,"mean":55.2,"lo":38.5,"hi":79.8,"t":4.94,"hit":100.0},{"subset":"pre-2020 all","group":"National","measure":"dlogidio_late","n":7,"clusters":6,"mean":40.4,"lo":22.9,"hi":73.2,"t":2.91,"hit":100.0},{"subset":"pre-2020 all","group":"Reinsurer","measure":"CARpre[-5,-1]_SPY","n":7,"clusters":6,"mean":-1.2,"lo":-3.0,"hi":0.8,"t":-1.05,"hit":43.0},{"subset":"pre-2020 all","group":"Reinsurer","measure":"CAR[0,+1]_SPY","n":7,"clusters":6,"mean":0.5,"lo":-1.7,"hi":3.0,"t":0.4,"hit":43.0},{"subset":"pre-2020 all","group":"Reinsurer","measure":"CAR[0,+5]_SPY","n":7,"clusters":6,"mean":-1.3,"lo":-4.2,"hi":3.2,"t":-0.63,"hit":43.0},{"subset":"pre-2020 all","group":"Reinsurer","measure":"CAR[0,+20]_SPY","n":7,"clusters":6,"mean":-0.5,"lo":-3.3,"hi":3.7,"t":-0.27,"hit":57.0},{"subset":"pre-2020 all","group":"Reinsurer","measure":"CAR[0,+60]_SPY","n":7,"clusters":6,"mean":1.6,"lo":-7.0,"hi":13.3,"t":0.27,"hit":57.0},{"subset":"pre-2020 all","group":"Reinsurer","measure":"reversal+5_SPY","n":2,"clusters":2,"mean":53.6,"lo":20.0,"hi":87.2,"t":1.59,"hit":100.0},{"subset":"pre-2020 all","group":"Reinsurer","measure":"reversal+20_SPY","n":2,"clusters":2,"mean":35.7,"lo":14.9,"hi":56.5,"t":1.72,"hit":100.0},{"subset":"pre-2020 all","group":"Reinsurer","measure":"dlogvol_post","n":7,"clusters":6,"mean":69.1,"lo":55.2,"hi":94.4,"t":6.3,"hit":100.0},{"subset":"pre-2020 all","group":"Reinsurer","measure":"dlogvol_late","n":7,"clusters":6,"mean":41.8,"lo":24.9,"hi":66.6,"t":3.53,"hit":100.0},{"subset":"pre-2020 all","group":"Reinsurer","measure":"dlogidio_post","n":7,"clusters":6,"mean":57.2,"lo":37.5,"hi":82.1,"t":4.78,"hit":100.0},{"subset":"pre-2020 all","group":"Reinsurer","measure":"dlogidio_late","n":7,"clusters":6,"mean":36.5,"lo":24.5,"hi":60.4,"t":3.68,"hit":100.0}],"vol_rel":[{"subset":"2020-24 FL landfall","measure":"dlogvol_post","n":6,"mean":39.7,"lo":6.8,"hi":64.8},{"subset":"2020-24 non-FL landfall","measure":"dlogvol_post","n":10,"mean":31.8,"lo":5.2,"hi":74.3},{"subset":"pre-2020 FL landfall","measure":"dlogvol_post","n":2,"mean":21.6,"lo":-14.3,"hi":57.5},{"subset":"2020-24 FL landfall","measure":"dlogvol_late","n":6,"mean":26.3,"lo":3.6,"hi":55.0},{"subset":"2020-24 non-FL landfall","measure":"dlogvol_late","n":10,"mean":17.2,"lo":11.3,"hi":31.8},{"subset":"pre-2020 FL landfall","measure":"dlogvol_late","n":2,"mean":-37.6,"lo":-50.5,"hi":-24.7},{"subset":"2020-24 FL landfall","measure":"dlogidio_post","n":6,"mean":37.1,"lo":-4.4,"hi":66.7},{"subset":"2020-24 non-FL landfall","measure":"dlogidio_post","n":10,"mean":26.6,"lo":-3.1,"hi":83.9},{"subset":"pre-2020 FL landfall","measure":"dlogidio_post","n":2,"mean":31.0,"lo":-0.2,"hi":62.3},{"subset":"2020-24 FL landfall","measure":"dlogidio_late","n":6,"mean":22.6,"lo":-1.2,"hi":55.9},{"subset":"2020-24 non-FL landfall","measure":"dlogidio_late","n":10,"mean":9.3,"lo":2.4,"hi":25.6},{"subset":"pre-2020 FL landfall","measure":"dlogidio_late","n":2,"mean":-29.8,"lo":-37.0,"hi":-22.6}],"slope":[{"y":"CAR[0,+5]_SPY","slope":-0.32,"lo":-0.61,"hi":0.17,"n":64},{"y":"CAR[0,+20]_SPY","slope":-0.12,"lo":-0.9,"hi":0.74,"n":64}],"milton":{"2024-10-04":{"UVE":-0.5,"HCI":1.7,"HRTG":2.2,"ACIC":1.6},"2024-10-07":{"UVE":-19.5,"HCI":-17.3,"HRTG":-23.4,"ACIC":-15.3},"2024-10-08":{"UVE":4.7,"HCI":1.9,"HRTG":2.5,"ACIC":0.7},"2024-10-09":{"UVE":-4.2,"HCI":2.4,"HRTG":0.8,"ACIC":-2.0},"2024-10-10":{"UVE":11.8,"HCI":11.8,"HRTG":9.2,"ACIC":8.6},"2024-10-11":{"UVE":0.3,"HCI":0.2,"HRTG":0.9,"ACIC":4.4},"week Fri4->Fri11":{"UVE":-9.5,"HCI":-3.2,"HRTG":-12.8,"ACIC":-5.1}}};
+
+/* ---------- formatting ---------- */
+const nf1 = new Intl.NumberFormat("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const nf2 = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const nf0 = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+const sgn = (v, f = nf1) => v == null ? "–" : (v > 0 ? "+" : v < 0 ? "−" : "") + f.format(Math.abs(v));
+const pct = (v, f) => v == null ? "–" : sgn(v, f) + "%";
+const ci = (lo, hi, f = nf1) => lo == null ? "" : `[${sgn(lo, f)}, ${sgn(hi, f)}]`;
+const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const dfmt = s => { const [y, m, d] = s.split("-"); return `${+d} ${MON[+m - 1]} ${y}`; };
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function niceTicks(lo, hi, n = 4) {
+  const span = hi - lo || 1, raw = span / n, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => span / s <= n + 0.5);
+  const t = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) t.push(+v.toFixed(6));
+  return t;
+}
+const GROUP_LABEL = { FL: "FL", National: "National", Reinsurer: "Reinsurer" };
+const GROUP_CLS = { FL: "s1", National: "s2", Reinsurer: "s3" };
+
+/* ---------- line chart with crosshair ---------- */
+function lineChart(host, { series, x0 = -6, yDomain, W = 360, H = 230, tipTitle, label }) {
+  const m = { l: 34, r: 8, t: 8, b: 24 };
+  const xs = series[0].y.map((_, i) => x0 + i);
+  const vals = series.flatMap(s => s.y.filter(v => v != null));
+  let lo = yDomain ? yDomain[0] : Math.min(0, ...vals);
+  let hi = yDomain ? yDomain[1] : Math.max(0, ...vals);
+  const pad = (hi - lo) * 0.06; lo -= pad; hi += pad;
+  const X = v => m.l + (v - xs[0]) / (xs[xs.length - 1] - xs[0]) * (W - m.l - m.r);
+  const Y = v => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "viz", role: "img", "aria-label": label || "" });
+  for (const t of niceTicks(lo, hi)) {
+    el("line", { x1: m.l, x2: W - m.r, y1: Y(t), y2: Y(t), class: t === 0 ? "zero" : "grid" }, svg);
+    el("text", { x: m.l - 5, y: Y(t) + 3.5, "text-anchor": "end", "font-size": 10 }, svg).textContent = sgn(t, nf0);
+  }
+  for (const t of [0, 20, 40, 60]) {
+    el("text", { x: X(t), y: H - 6, "text-anchor": "middle", "font-size": 10 }, svg).textContent = t;
+  }
+  el("line", { x1: X(0), x2: X(0), y1: m.t, y2: H - m.b, class: "t0" }, svg);
+  for (const s of series) {
+    const d = s.y.map((v, i) => v == null ? "" : `${i && s.y[i - 1] != null ? "L" : "M"}${X(xs[i]).toFixed(1)},${Y(v).toFixed(1)}`).join("");
+    el("path", { d, class: `line ${s.cls}`, style: s.w ? `stroke-width:${s.w}` : "" }, svg);
+  }
+  const cross = el("line", { y1: m.t, y2: H - m.b, class: "cross", visibility: "hidden" }, svg);
+  const colorOf = s => `var(--${s.cls})`;
+  const dots = series.map(s => el("circle", { r: s.cls === "stock" ? 3 : 4, class: "dot", style: `fill:${colorOf(s)}`, visibility: "hidden" }, svg));
+  const hit = el("rect", { x: m.l, y: m.t, width: W - m.l - m.r, height: H - m.t - m.b, class: "hit" }, svg);
+  const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true;
+  host.appendChild(svg); host.appendChild(tip);
+  const move = ev => {
+    const r = svg.getBoundingClientRect(), sx = (ev.clientX - r.left) / r.width * W;
+    const i = Math.max(0, Math.min(xs.length - 1, Math.round((sx - m.l) / (W - m.l - m.r) * (xs.length - 1))));
+    const px = X(xs[i]);
+    cross.setAttribute("x1", px); cross.setAttribute("x2", px); cross.setAttribute("visibility", "visible");
+    series.forEach((s, k) => {
+      const v = s.y[i];
+      dots[k].setAttribute("visibility", v == null ? "hidden" : "visible");
+      if (v != null) { dots[k].setAttribute("cx", px); dots[k].setAttribute("cy", Y(v)); }
+    });
+    const day = xs[i] === 0 ? "T0" : (xs[i] > 0 ? `T0+${xs[i]}` : `T0−${-xs[i]}`);
+    const order = [...series].reverse();
+    tip.innerHTML = `<b>${tipTitle ? tipTitle + " · " : ""}${day}</b><br>` + order.map(s =>
+      `<span class="sw" style="background:${colorOf(s)}"></span>${s.label} ${pct(s.y[i])}`).join("<br>");
+    tip.hidden = false;
+    const hr = host.getBoundingClientRect();
+    const left = r.left - hr.left + px / W * r.width;
+    tip.style.left = Math.max(70, Math.min(hr.width - 70, left)) + "px";
+    tip.style.top = (r.top - hr.top + 12) + "px";
+  };
+  hit.addEventListener("pointermove", move);
+  hit.addEventListener("pointerdown", move);
+  hit.addEventListener("pointerleave", () => { tip.hidden = true; cross.setAttribute("visibility", "hidden"); dots.forEach(d => d.setAttribute("visibility", "hidden")); });
+}
+
+/* ---------- KPIs ---------- */
+const gs = (subset, group, measure) => D.grp_sum.find(r => r.subset === subset && r.group === group && r.measure === measure);
+const ssum = (run, subset, hold) => D.strat_sum.find(r => r.run === run && r.subset === subset && r.hold === hold);
+const BASE = "base (T0 = first close after landfall)";
+const setText = (id, t) => { document.getElementById(id).textContent = t; };
+setText("k-pre", pct(gs("2020-24 FL landfall", "FL", "CARpre[-5,-1]_SPY").mean));
+setText("k-post", pct(gs("2020-24 FL landfall", "FL", "CAR[0,+20]_SPY").mean));
+setText("k-strat", pct(ssum(BASE, "2020-24 FL landfall", 5).median));
+setText("k-worst", pct(ssum(BASE, "2020-24 FL landfall", 20).worst));
+const vrel = D.vol_rel.find(r => r.subset === "2020-24 FL landfall" && r.measure === "dlogvol_post");
+setText("k-vol", pct((Math.exp(vrel.mean / 100) - 1) * 100, nf0));
+const sl = D.slope.find(s => s.y === "CAR[0,+5]_SPY");
+setText("k-slope", nf2.format(-sl.slope));
+setText("k-slope-ci", ci(sl.lo, sl.hi, nf2));
+
+/* ---------- chart 1: panels ---------- */
+{
+  const all = D.panels.flatMap(p => Object.values(p.series).flatMap(s => s.y || []));
+  const dom = [Math.min(...all), Math.max(...all)];
+  const host = document.getElementById("panels");
+  const TITLES = { fl: "2020–24 · Florida landfall", other: "2020–24 · landfall elsewhere", pre: "Pre-2020 · comparison" };
+  for (const p of D.panels) {
+    const c = document.createElement("div"); c.className = "chart";
+    const n = Math.max(...Object.values(p.series).map(s => s.n));
+    c.innerHTML = `<h3>${TITLES[p.key]} <span class="sub">· ${n} storms</span></h3>`;
+    host.appendChild(c);
+    lineChart(c, {
+      yDomain: dom, label: `Average cumulative abnormal return by insurer group, ${TITLES[p.key]}`,
+      series: Object.entries(p.series).filter(([, s]) => s.y).map(([g, s]) => ({ y: s.y, cls: GROUP_CLS[g], label: GROUP_LABEL[g] })),
+    });
+  }
+}
+
+/* ---------- chart 2: small multiples ---------- */
+{
+  const host = document.getElementById("smalls");
+  for (const e of D.fl_events) {
+    const c = document.createElement("div"); c.className = "chart";
+    c.innerHTML = `<h3>${e.storm} ${e.year}<span class="sub">${e.year < 2020 ? " · comparison" : ""}</span></h3>`;
+    host.appendChild(c);
+    const series = Object.entries(e.tickers).map(([t, y]) => ({ y, cls: "stock", label: t, w: 1.1 }));
+    series.push({ y: e.mean, cls: "s1", label: "Basket", w: 2.4 });
+    lineChart(c, { series, W: 260, H: 190, tipTitle: e.storm, label: `FL insurers around ${e.storm} ${e.year}` });
+  }
+}
+
+/* ---------- chart 3: strategy bars ---------- */
+let HOLD = 5, BENCH = "SPY";
+function drawBars() {
+  const host = document.getElementById("bars"); host.innerHTML = "";
+  const rows = D.strat;
+  const key = r => r[(HOLD === 5 ? "ex5" : "ex20") + (BENCH === "KIE" ? "k" : "")];
+  const allv = rows.flatMap(r => [r.ex5, r.ex20, r.ex5k, r.ex20k]).filter(v => v != null);
+  const W = 760, H = 300, m = { l: 40, r: 8, t: 16, b: 62 };
+  let lo = Math.min(0, ...allv), hi = Math.max(0, ...allv); const pad = (hi - lo) * 0.05; lo -= pad; hi += pad;
+  const bw = (W - m.l - m.r) / rows.length;
+  const Y = v => m.t + (hi - v) / (hi - lo) * (H - m.t - m.b);
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, class: "viz", role: "img",
+    "aria-label": `FL basket excess return over ${BENCH}, ${HOLD}-day hold, by storm` });
+  for (const t of niceTicks(lo, hi, 5)) {
+    el("line", { x1: m.l, x2: W - m.r, y1: Y(t), y2: Y(t), class: t === 0 ? "zero" : "grid" }, svg);
+    el("text", { x: m.l - 6, y: Y(t) + 3.5, "text-anchor": "end", "font-size": 10 }, svg).textContent = sgn(t, nf0);
+  }
+  const firstNew = rows.findIndex(r => r.period === "2020-2024");
+  const dx = m.l + firstNew * bw;
+  el("line", { x1: dx, x2: dx, y1: m.t - 8, y2: H - m.b + 4, class: "divider" }, svg);
+  el("text", { x: dx - 6, y: m.t - 2, "text-anchor": "end", "font-size": 10 }, svg).textContent = "pre-2020";
+  el("text", { x: dx + 6, y: m.t - 2, "font-size": 10 }, svg).textContent = "2020–2024";
+  const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true;
+  rows.forEach((r, i) => {
+    const v = key(r), x = m.l + i * bw, w = Math.max(4, bw - 6), cx = x + bw / 2;
+    const g = el("g", { class: "bar-g" }, svg);
+    if (v != null) {
+      const y0 = Y(0), y1 = Y(v), rr = Math.min(4, Math.abs(y1 - y0) / 2), bx = cx - w / 2;
+      const d = v >= 0
+        ? `M${bx},${y0}V${y1 + rr}Q${bx},${y1} ${bx + rr},${y1}H${bx + w - rr}Q${bx + w},${y1} ${bx + w},${y1 + rr}V${y0}Z`
+        : `M${bx},${y0}V${y1 - rr}Q${bx},${y1} ${bx + rr},${y1}H${bx + w - rr}Q${bx + w},${y1} ${bx + w},${y1 - rr}V${y0}Z`;
+      el("path", { d, class: r.fl ? "bar-fl" : "bar-other" }, g);
+    }
+    const lab = el("text", { x: cx, y: H - m.b + 12, "text-anchor": "end", "font-size": 10,
+      transform: `rotate(-55 ${cx} ${H - m.b + 12})` }, g);
+    lab.textContent = `${r.storm} ’${String(r.year).slice(2)}`;
+    const hitR = el("rect", { x, y: m.t, width: bw, height: H - m.t - m.b, class: "hit" }, g);
+    const show = () => {
+      svg.querySelectorAll(".bar-g").forEach(n => n.classList.toggle("dim", n !== g));
+      tip.innerHTML = `<b>${r.storm} ${r.year}</b>${r.fl ? " · FL landfall" : ""}<br>Buy ${dfmt(r.entry)}, hold ${HOLD} days<br>vs ${BENCH}: ${pct(v)}<br>Basket: ${r.n} stock${r.n > 1 ? "s" : ""}`;
+      tip.hidden = false;
+      const sr = svg.getBoundingClientRect(), hr = host.getBoundingClientRect();
+      tip.style.left = Math.max(80, Math.min(hr.width - 80, sr.left - hr.left + cx / W * sr.width)) + "px";
+      tip.style.top = (sr.top - hr.top + Math.min(Y(0), Y(v ?? 0)) / H * sr.height) + "px";
+    };
+    hitR.addEventListener("pointerenter", show);
+    hitR.addEventListener("pointerdown", show);
+    hitR.addEventListener("pointerleave", () => { tip.hidden = true; svg.querySelectorAll(".bar-g").forEach(n => n.classList.remove("dim")); });
+  });
+  host.appendChild(svg); host.appendChild(tip);
+}
+function setToggle(a, b, on) { a.setAttribute("aria-pressed", on); b.setAttribute("aria-pressed", !on); }
+const h5 = document.getElementById("h5"), h20 = document.getElementById("h20");
+const bS = document.getElementById("bSPY"), bK = document.getElementById("bKIE");
+h5.onclick = () => { HOLD = 5; setToggle(h5, h20, true); drawBars(); };
+h20.onclick = () => { HOLD = 20; setToggle(h5, h20, false); drawBars(); };
+bS.onclick = () => { BENCH = "SPY"; setToggle(bS, bK, true); drawBars(); };
+bK.onclick = () => { BENCH = "KIE"; setToggle(bS, bK, false); drawBars(); };
+drawBars();
+
+/* ---------- tables ---------- */
+function table(id, head, rows) {
+  document.getElementById(id).innerHTML =
+    `<thead><tr>${head.map(h => `<th class="${h.n ? "n" : ""}">${h.t}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody>`;
+}
+const flDot = '<span class="flmark" title="Florida landfall"></span>';
+table("basket",
+  [{ t: "Storm" }, { t: "before [−5,−1]", n: 1 }, { t: "[0,+1]", n: 1 }, { t: "[0,+5]", n: 1 }, { t: "[0,+20]", n: 1 }, { t: "[0,+60]", n: 1 }],
+  D.basket.map((r, i, a) => `<tr class="${i && a[i - 1].period !== r.period ? "sep" : ""}">
+    <td class="storm">${r.storm} ${r.year}${r.fl ? flDot : ""}</td>
+    <td class="n">${sgn(r.pre)}</td><td class="n">${sgn(r.d1)}</td><td class="n">${sgn(r.d5)}</td>
+    <td class="n">${sgn(r.d20)}</td><td class="n">${sgn(r.d60)}</td></tr>`));
+
+const RUNS = [
+  [BASE, "2020-24 FL landfall", "Base · Florida landfalls", true],
+  [BASE, "2020-24 all", "Base · all 16 storms"],
+  ["base, non-overlapping trades only", "2020-24 FL landfall", "Non-overlapping trades only · FL"],
+  ["brief date convention", "2020-24 FL landfall", "Dates as in the brief · FL"],
+  ["Ian + FNHC at -50%", "2020-24 FL landfall", "FedNat at −50% for Ian · FL"],
+  ["Ian + FNHC at -100%", "2020-24 FL landfall", "FedNat at −100% for Ian · FL"],
+  [BASE, "pre-2020 FL landfall", "Pre-2020 · Irma, Michael"],
+];
+const srows = [];
+for (const [run, sub, label, key] of RUNS) for (const h of [5, 20]) {
+  const r = ssum(run, sub, h); if (!r) continue;
+  srows.push(`<tr class="${key ? "key" : ""}${h === 5 ? " sep" : ""}"><td>${h === 5 ? label : ""}</td><td class="n">${h}</td><td class="n">${r.n}</td>
+    <td class="n">${sgn(r.mean)}<span class="ci">${r.n > 1 ? ci(r.lo, r.hi) : ""}</span></td><td class="n">${sgn(r.median)}</td>
+    <td class="n">${nf0.format(r.hit)}%</td><td class="n">${sgn(r.worst)}</td></tr>`);
+}
+table("strat", [{ t: "Run" }, { t: "Days", n: 1 }, { t: "n", n: 1 }, { t: "Mean", n: 1 }, { t: "Median", n: 1 }, { t: "Hit rate", n: 1 }, { t: "Worst", n: 1 }], srows);
+
+const WINS = [["CARpre[-5,-1]_SPY", "before [−5,−1]"], ["CAR[0,+1]_SPY", "[0,+1]"], ["CAR[0,+5]_SPY", "[0,+5]"], ["CAR[0,+20]_SPY", "[0,+20]"], ["CAR[0,+60]_SPY", "[0,+60]"]];
+const GNAME = { FL: "FL insurers", National: "National", Reinsurer: "Reinsurers" };
+const grows = [];
+for (const [sub, sl] of [["2020-24 FL landfall", "Florida landfall"], ["2020-24 non-FL landfall", "Landfall elsewhere"], ["pre-2020 all", "Pre-2020, all"]]) {
+  ["FL", "National", "Reinsurer"].forEach((g, k) => {
+    const n = gs(sub, g, WINS[0][0])?.n ?? 0;
+    grows.push(`<tr class="${k === 0 ? "sep" : ""}${g === "FL" && sub === "2020-24 FL landfall" ? " key" : ""}"><td>${k === 0 ? sl : ""}</td><td class="nowrap">${GNAME[g]}</td><td class="n">${n}</td>` +
+      WINS.map(([m]) => { const r = gs(sub, g, m); return `<td class="n">${r ? sgn(r.mean) : "–"}<span class="ci">${r ? ci(r.lo, r.hi) : ""}</span></td>`; }).join("") + "</tr>");
+  });
+}
+table("groups", [{ t: "Storms" }, { t: "Group" }, { t: "n", n: 1 }, ...WINS.map(([, l]) => ({ t: l, n: 1 }))], grows);
+
+const vrows = [];
+for (const [sub, sl] of [["2020-24 FL landfall", "Florida landfall"], ["2020-24 non-FL landfall", "Landfall elsewhere"]]) {
+  const a = D.vol_rel.find(r => r.subset === sub && r.measure === "dlogvol_post");
+  const b = D.vol_rel.find(r => r.subset === sub && r.measure === "dlogvol_late");
+  vrows.push(`<tr><td>${sl}</td><td class="n">${a.n}</td><td class="n">${sgn(a.mean, nf0)}<span class="ci">${ci(a.lo, a.hi, nf0)}</span></td><td class="n">${sgn(b.mean, nf0)}<span class="ci">${ci(b.lo, b.hi, nf0)}</span></td></tr>`);
+}
+table("vol", [{ t: "Storms 2020–24" }, { t: "n", n: 1 }, { t: "Days 0–20", n: 1 }, { t: "Days 21–60", n: 1 }], vrows);
+
+const mk = Object.keys(D.milton);
+const mcols = Object.keys(D.milton[mk[0]]);
+table("milton", [{ t: "Day" }, ...mcols.map(c => ({ t: c, n: 1 }))],
+  mk.map(k => `<tr class="${k === "2024-10-07" || k === "2024-10-10" ? "key" : ""}"><td class="mono nowrap">${k.startsWith("week") ? "Week 4–11 Oct" : dfmt(k).replace(/ \d{4}$/, "")}</td>${mcols.map(c => `<td class="n">${sgn(D.milton[k][c])}</td>`).join("")}</tr>`));
+
+table("events",
+  [{ t: "Storm" }, { t: "State" }, { t: "Landfall (New York)" }, { t: "Wind" }, { t: "T0" }, { t: "Cluster", n: 1 }, { t: "Note" }],
+  D.events.map((e, i, a) => {
+    const brief = e.T0_brief !== e.T0 ? ` <span class="dim-text">(brief: ${dfmt(e.T0_brief)})</span>` : "";
+    const cat = e.cat.replace("Kat. ", "Cat ").replace("post-trop.", "post-tropical");
+    return `<tr class="${i && a[i - 1].period !== e.period ? "sep" : ""}"><td class="storm">${e.storm} ${e.year}${e.fl ? flDot : ""}</td>
+      <td>${e.state}</td><td class="mono nowrap">${dfmt(e.landfall_et.slice(0, 10))} ${e.landfall_et.slice(11)}</td>
+      <td class="mono nowrap">${e.kt ?? "–"} kt · ${cat}</td>
+      <td class="mono nowrap">${dfmt(e.T0)}${brief}</td>
+      <td class="n">${e.cluster}</td><td class="note">${e.note}</td></tr>`;
+  }));
+</script>
+</body>
+</html>

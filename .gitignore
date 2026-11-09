@@ -1,0 +1,4 @@
+# raw price data (Yahoo Finance terms) and HURDAT2 download: re-created by 01/02 scripts
+data/
+__pycache__/
+*.pyc
